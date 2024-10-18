@@ -1,0 +1,2 @@
+mvn javafx:run
+mvn javafx:jlink
