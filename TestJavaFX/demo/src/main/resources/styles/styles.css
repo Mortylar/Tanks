@@ -1,0 +1,14 @@
+
+
+.main-pannel {
+    -fx-background-image: url("../textures/field.jpg");
+}
+
+.enemy-style {
+    -fx-image: url("../textures/enemy.png");
+}
+
+
+.player-style {
+    -fx-image: url("../textures/player.png");
+}

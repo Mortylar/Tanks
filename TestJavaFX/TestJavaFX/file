@@ -1,5 +1,0 @@
-mvn javafx:run
-mvn javafx:jlink
-
-
-https://github.com/openjfx/javafx-maven-plugin

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="main-pannel" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.game.Controller">
+   <children>
+      <ImageView id="player" fx:id="player" fitHeight="150.0" fitWidth="150.0" layoutX="437.0" layoutY="874.0" pickOnBounds="true" preserveRatio="true" styleClass="player-style">
+         <viewport>
+            <Rectangle2D />
+         </viewport>
+      </ImageView>
+      <ImageView id="enemy" fx:id="enemy" fitHeight="150.0" fitWidth="150.0" layoutX="437.0" pickOnBounds="true" preserveRatio="true" styleClass="enemy-style" />
+   </children>
+</Pane>
