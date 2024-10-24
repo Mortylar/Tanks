@@ -101,7 +101,6 @@ public class Server {
                     client.setUser(null);
                 }
             }
-            // return user;
         }
 
         private User authenticate(Socket client) throws Exception {
