@@ -7,4 +7,7 @@ module com.example.app {
 
     opens com.example.game to javafx.fxml;
     exports com.example.game;
+
+    opens com.example.auth to javafx.fxml;
+    exports com.example.auth;
 }

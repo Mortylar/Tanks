@@ -1,5 +1,6 @@
 package com.example.app;
 
+import com.example.auth.Auth;
 import com.example.game.Game;
 import java.io.IOException;
 import java.util.List;
@@ -31,7 +32,7 @@ public class Main {
       }*/
 
     public static void main(String[] args) {
-        Game game = new Game();
-        game.run();
+        Auth auth = new Auth();
+        auth.run();
     }
 }
