@@ -1,4 +1,4 @@
-package com.example.game;
+package edu.school21.game;
 
 import java.io.IOException;
 import java.util.List;

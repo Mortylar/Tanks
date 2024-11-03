@@ -1,4 +1,4 @@
-package com.example.view;
+package edu.school21.view;
 
 import java.io.IOException;
 import java.util.List;

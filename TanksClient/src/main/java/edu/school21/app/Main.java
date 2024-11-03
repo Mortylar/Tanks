@@ -1,6 +1,6 @@
-package com.example.app;
+package edu.school21.app;
 
-import com.example.view.View;
+import edu.school21.view.View;
 
 public class Main {
 

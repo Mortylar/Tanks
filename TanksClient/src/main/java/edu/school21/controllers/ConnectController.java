@@ -1,6 +1,6 @@
-package com.example.controllers;
+package edu.school21.controllers;
 
-import com.example.observers.Observable;
+import edu.school21.observers.Observable;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

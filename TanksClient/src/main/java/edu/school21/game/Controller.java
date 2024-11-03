@@ -1,4 +1,4 @@
-package com.example.game;
+package edu.school21.game;
 
 import javafx.fxml.FXML;
 import javafx.scene.image.ImageView;

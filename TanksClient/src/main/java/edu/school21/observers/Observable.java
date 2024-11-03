@@ -1,4 +1,4 @@
-package com.example.observers;
+package edu.school21.observers;
 
 public interface Observable {
 

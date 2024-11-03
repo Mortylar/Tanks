@@ -1,6 +1,6 @@
-package com.example.observers;
+package edu.school21.observers;
 
-import com.example.view.Viewable;
+import edu.school21.view.Viewable;
 
 public class ViewObserver implements Observable {
 

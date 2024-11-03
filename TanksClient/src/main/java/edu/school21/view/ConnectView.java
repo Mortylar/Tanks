@@ -1,7 +1,7 @@
-package com.example.view;
+package edu.school21.view;
 
-import com.example.controllers.ConnectController;
-import com.example.observers.ViewObserver;
+import edu.school21.controllers.ConnectController;
+import edu.school21.observers.ViewObserver;
 import java.io.IOException;
 import java.util.List;
 import javafx.application.Application;

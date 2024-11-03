@@ -1,16 +1,19 @@
-module com.example.app {
+module edu.school21.app {
     requires javafx.controls;
     requires javafx.fxml;
 
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
 
-    opens com.example.game to javafx.fxml;
-    exports com.example.game;
+    opens edu.school21.game to javafx.fxml;
+    exports edu.school21.game;
 
-    opens com.example.view to javafx.fxml;
-    exports com.example.view;
+    opens edu.school21.view to javafx.fxml;
+    exports edu.school21.view;
 
-    opens com.example.controllers to javafx.fxml;
-    exports com.example.controllers;
+    opens edu.school21.controllers to javafx.fxml;
+    exports edu.school21.controllers;
+
+    // opens edu.school21.app to javafx.fxml;
+    exports edu.school21.app to javafx.graphics;
 }
