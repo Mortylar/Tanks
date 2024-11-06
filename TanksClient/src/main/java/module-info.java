@@ -4,6 +4,7 @@ module edu.school21.app {
 
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
+    requires com.google.gson;
 
     opens edu.school21.game to javafx.fxml;
     exports edu.school21.game;

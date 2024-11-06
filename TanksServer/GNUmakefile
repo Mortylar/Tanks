@@ -11,7 +11,7 @@ build:
 	mvn clean package
  
 run: build
-	java -jar target/$(TARGET).jar
+	java -jar target/$(TARGET).jar $(ARGS)
 
 test:
 	mvn clean test

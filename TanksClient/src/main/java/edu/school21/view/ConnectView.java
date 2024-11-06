@@ -1,5 +1,6 @@
 package edu.school21.view;
 
+import edu.school21.client.Client;
 import edu.school21.controllers.ConnectController;
 import edu.school21.observers.Observable;
 import edu.school21.observers.ViewObserver;
@@ -25,9 +26,12 @@ public class ConnectView implements Viewable {
     private Parent root;
     private ConnectController controller;
     private Observable observer;
+    private Client client;
 
-    public ConnectView(Stage stage, Observable observer) throws IOException {
+    public ConnectView(Stage stage, Observable observer, Client client)
+        throws IOException {
         this.observer = observer;
+        this.client = client;
         this.stage = stage;
         this.fxmlLoader = new FXMLLoader(getClass().getResource(CONNECT_FORM));
 
@@ -46,8 +50,13 @@ public class ConnectView implements Viewable {
 
     @Override
     public void catchEvent() {
-        System.out.printf("\n****\n%s\n****\n", this.controller.getPort());
-        this.stage.hide();
-        observer.notifyView();
+        System.out.printf("\n****\n%d\n****\n", this.controller.getPort());
+        try {
+            this.client.setPort(this.controller.getPort());
+            this.stage.hide();
+            observer.notifyView();
+        } catch (Exception e) {
+            System.err.printf("\n%s\n", e.getMessage());
+        }
     }
 }

@@ -1,5 +1,6 @@
 package edu.school21.view;
 
+import edu.school21.client.Client;
 import edu.school21.controllers.LoginController;
 import edu.school21.observers.Observable;
 import edu.school21.observers.ViewObserver;
@@ -25,8 +26,11 @@ public class LoginView implements Viewable {
     private Parent root;
     private LoginController controller;
     private Observable observer;
+    private Client client;
 
-    public LoginView(Stage stage, Observable observer) throws IOException {
+    public LoginView(Stage stage, Observable observer, Client client)
+        throws IOException {
+        this.client = client;
         this.observer = observer;
         this.stage = stage;
         this.fxmlLoader = new FXMLLoader(getClass().getResource(CONNECT_FORM));
@@ -38,6 +42,7 @@ public class LoginView implements Viewable {
     @Override
     public void run() {
         controller.setObserver(new ViewObserver(this));
+        controller.setClient(client);
         Scene scene = new Scene(root, 300, 200);
         stage.setTitle("Login");
         stage.setScene(scene);
@@ -47,6 +52,9 @@ public class LoginView implements Viewable {
     @Override
     public void catchEvent() {
         System.out.printf("\n****\n%s\n****\n", this.controller.getName());
+        // client.
+        // client.setId(22L);
+        observer.notifyView();
         // TODO
     }
 }

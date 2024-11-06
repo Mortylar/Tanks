@@ -13,6 +13,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -95,7 +96,9 @@ public class Server {
                 try {
                     client.setSocket(server.accept());
                     System.out.println("Accepted client");
-                    client.setUser(authenticate(client.getSocket()));
+                    while (null == client.getUser()) {
+                        client.setUser(authenticate(client.getSocket()));
+                    }
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                     client.setUser(null);
@@ -104,6 +107,8 @@ public class Server {
         }
 
         private User authenticate(Socket client) throws Exception {
+            // System.out.printf("\nAAAAAAuth\n");
+            Optional<User> user = Optional.empty();
             BufferedReader inStream = new BufferedReader(
                 new InputStreamReader(client.getInputStream()));
             PrintWriter outStream =
@@ -111,16 +116,29 @@ public class Server {
                                     client.getOutputStream())),
                                 true);
             String message = inStream.readLine();
+            System.out.printf("\nmessage = %s\n", message);
+            System.out.printf("\nmessage = %s\n", message.equals("SignUp"));
             if (null == message) {
+                System.out.printf("\nNNNNNNNN\n");
                 return null;
             }
-            if ("SignUp" == message) {
-                return usersService.signUp(inStream.readLine()).get();
+            if (message.equals("SignUp")) {
+                System.err.printf("\nReg  %s\n", message);
+                user = usersService.signUp(inStream.readLine());
+                System.out.printf("\nReg\n");
             }
-            if ("SignIn" == message) {
-                return usersService.signIn(inStream.readLine()).get();
+            if ("SignIn".equals(message)) {
+                System.out.printf("\nINNN\n");
+                user = usersService.signIn(inStream.readLine());
             }
-            return null;
+            if (!user.isPresent()) {
+                System.out.printf("\nNULLLLLL\n");
+                outStream.println("0");
+                return null;
+            }
+            System.out.printf("\nNOT NULL  %s\n", user.get().getId());
+            outStream.println(user.get().getId());
+            return user.get();
         }
     }
 }

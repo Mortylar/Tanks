@@ -1,5 +1,6 @@
 package edu.school21.view;
 
+import edu.school21.client.Client;
 import edu.school21.observers.ViewObserver;
 import java.io.IOException;
 import java.util.List;
@@ -16,15 +17,20 @@ import javafx.stage.Stage;
 
 public class View extends Application implements Viewable {
 
-    private Viewable current;
+    private static final String SERVER_ADDRESS = "localhost";
 
+    private Viewable current;
     private ConnectView connect;
     private LoginView login;
+    private Client client;
+
+    { this.client = new Client(SERVER_ADDRESS); }
 
     @Override
     public void start(Stage stage) throws Exception {
-        connect = new ConnectView(new Stage(), new ViewObserver(this));
-        login = new LoginView(new Stage(), new ViewObserver(this));
+        connect =
+            new ConnectView(new Stage(), new ViewObserver(this), this.client);
+        login = new LoginView(new Stage(), new ViewObserver(this), this.client);
         current = connect;
         current.run(); //
     }
@@ -38,11 +44,14 @@ public class View extends Application implements Viewable {
     public void catchEvent() {
         // System.out.printf("\nTODO\n");
         viewManager();
+        System.out.printf("\nid = %d\n", client.getId());
     }
 
     private void viewManager() {
         if (current == connect) {
             current = login;
+        } else if (current == login) {
+            return;
         }
         try {
             current.run();
