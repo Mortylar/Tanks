@@ -22,6 +22,7 @@ public class View extends Application implements Viewable {
     private Viewable current;
     private ConnectView connect;
     private LoginView login;
+    private GameView game;
     private Client client;
 
     { this.client = new Client(SERVER_ADDRESS); }
@@ -31,6 +32,7 @@ public class View extends Application implements Viewable {
         connect =
             new ConnectView(new Stage(), new ViewObserver(this), this.client);
         login = new LoginView(new Stage(), new ViewObserver(this), this.client);
+        game = new GameView(new Stage(), new ViewObserver(this), this.client);
         current = connect;
         current.run(); //
     }
@@ -51,7 +53,9 @@ public class View extends Application implements Viewable {
         if (current == connect) {
             current = login;
         } else if (current == login) {
-            return;
+            current = game;
+        } else if (current == game) {
+            System.exit(0);
         }
         try {
             current.run();
