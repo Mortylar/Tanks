@@ -1,6 +1,6 @@
 package edu.school21.view;
 
-import edu.school21.controllers.ConnectController;
+import edu.school21.controllers.LoginController;
 import edu.school21.observers.Observable;
 import edu.school21.observers.ViewObserver;
 import java.io.IOException;
@@ -16,17 +16,17 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-public class ConnectView implements Viewable {
+public class LoginView implements Viewable {
 
-    private static final String CONNECT_FORM = "/forms/connect.fxml";
+    private static final String CONNECT_FORM = "/forms/login.fxml";
 
     private Stage stage;
     private FXMLLoader fxmlLoader;
     private Parent root;
-    private ConnectController controller;
+    private LoginController controller;
     private Observable observer;
 
-    public ConnectView(Stage stage, Observable observer) throws IOException {
+    public LoginView(Stage stage, Observable observer) throws IOException {
         this.observer = observer;
         this.stage = stage;
         this.fxmlLoader = new FXMLLoader(getClass().getResource(CONNECT_FORM));
@@ -39,15 +39,14 @@ public class ConnectView implements Viewable {
     public void run() {
         controller.setObserver(new ViewObserver(this));
         Scene scene = new Scene(root, 300, 200);
-        stage.setTitle("Connect");
+        stage.setTitle("Login");
         stage.setScene(scene);
         stage.show();
     }
 
     @Override
     public void catchEvent() {
-        System.out.printf("\n****\n%s\n****\n", this.controller.getPort());
-        this.stage.hide();
-        observer.notifyView();
+        System.out.printf("\n****\n%s\n****\n", this.controller.getName());
+        // TODO
     }
 }
