@@ -5,11 +5,11 @@
 
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.school21.state</groupId>
-  <artifactId>TanksState</artifactId>
-  <packaging>jar</packaging>
+  <groupId>edu.school21.tanks</groupId>
+  <artifactId>Tanks</artifactId>
+  <packaging>pom</packaging>
   <version>1.0</version>
-  <name>TanksState</name>
+  <name>Tanks</name>
 
   <url>http://maven.apache.org</url>
 
@@ -21,16 +21,11 @@
     </project.build.sourceEncoding>
   </properties>
 
-
-  <dependencies>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.11.0</version>
-    </dependency>
-  </dependencies>
-
-
+  <modules>
+    <module>
+      ./TanksState/pom.xml
+    </module>
+  </modules>
 
 
 </project>

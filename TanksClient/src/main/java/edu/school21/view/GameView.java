@@ -41,19 +41,28 @@ public class GameView implements Viewable {
     @Override
     public void run() {
         controller.setObserver(new ViewObserver(this));
+        client.setObserver(new ViewObserver(this));
         Scene scene = new Scene(root, 1024, 1024);
         stage.setTitle("Tanks");
         stage.setScene(scene);
         stage.setResizable(false);
         controller.setScene(scene);
+        controller.setClient(client);
 
         scene.getStylesheets().add(
             getClass().getResource("/styles/styles.css").toExternalForm());
         stage.show();
+        this.client.playGame();
     }
 
     @Override
-    public void catchEvent() {}
+    public void catchEvent() {
+        try {
+            controller.draw();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
 
     /*
         @Override

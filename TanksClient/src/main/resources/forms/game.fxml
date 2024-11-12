@@ -13,6 +13,7 @@
          </viewport>
       </ImageView>
       <ImageView fx:id="enemy" fitHeight="150.0" fitWidth="150.0" layoutX="437.0" pickOnBounds="true" preserveRatio="true" styleClass="enemy-style" />
-      <ProgressBar layoutX="895.0" layoutY="14.0" prefHeight="20.0" prefWidth="95.0" progress="0.81" styleClass="xp-style" />
+      <ProgressBar fx:id="enemyXP" layoutX="929.0" prefHeight="20.0" prefWidth="95.0" progress="0.81" styleClass="xp-style" />
+      <ProgressBar fx:id="playerXP" layoutY="1004.0" prefHeight="20.0" prefWidth="95.0" progress="0.88" styleClass="xp-style" />
    </children>
 </Pane>

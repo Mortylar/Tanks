@@ -58,4 +58,10 @@ public class Player {
     }
 
     public void hit() { xp -= DAMAGE_VALUE; }
+
+    @Override
+    public String toString() {
+        return String.format("Player:\nid = %d\nxp = %d\n pos = %d", id, xp,
+                             position.x());
+    }
 }

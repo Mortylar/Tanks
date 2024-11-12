@@ -6,13 +6,13 @@ import edu.school21.state.position.Position;
 
 public class StateManager {
 
-    public static final int FIELD_HEIGHT = 1042;
-    public static final int FIELD_WIDTH = 1042;
+    public static final int FIELD_HEIGHT = 1024;
+    public static final int FIELD_WIDTH = 1024;
 
     public static final int TANK_HEIGHT = 150;
     public static final int TANK_WIDTH = 150;
 
-    public static final int START_X_POSITION = 446;
+    public static final int START_X_POSITION = 437;
 
     public static final int D_X = 10;
 
@@ -29,15 +29,6 @@ public class StateManager {
         this.second = new Player(new Position(START_X_POSITION, 0), secondId);
     }
 
-    /*
-        public void moveFirst(int direction) {
-            move(this.first, dx);
-        }
-
-        public void moveSecond(int direction) {
-            move(this.second, dx);
-        }
-    */
     public void move(Long playerId, int direction) {
         Player current = getPlayer(playerId);
         int dx = ((direction > 0) ? D_X : -D_X);
@@ -56,11 +47,26 @@ public class StateManager {
         return null;
     }
 
+    public Player getEnemy(Long playerId) {
+        if (!this.first.getId().equals(playerId)) {
+            return this.first;
+        }
+        return this.second;
+    }
+
     private boolean isAvailableMove(Player player, int dx) {
         int newX = player.getPosition().x + dx;
-        if ((newX < 0) || (newX > (FIELD_WIDTH - TANK_WIDTH))) {
+        int rightBorder = FIELD_WIDTH - TANK_WIDTH + 2 * D_X;
+        if ((newX < 0) || (newX > rightBorder)) {
+            System.out.printf("\n%d < %d\n", newX, rightBorder);
             return false;
         }
+        /* if (player.getPosition().x < rightBorder) {
+             return true;
+         }
+         if (newX < rightBorder) {
+             return false;
+         }*/
         return true;
     }
 
@@ -83,5 +89,10 @@ public class StateManager {
                 victim.hit();
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return first.toString() + second.toString();
     }
 }

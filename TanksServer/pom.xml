@@ -21,6 +21,12 @@
     </project.build.sourceEncoding>
   </properties>
 
+  <parent>
+    <groupId>edu.school21.tanks</groupId>
+    <artifactId>Tanks</artifactId>
+    <version>1.0</version>
+  </parent>
+
 
   <dependencies>
     <dependency>
@@ -94,7 +100,7 @@
             </goals>
             <configuration>
               <sources>
-                <source>TODO</source>
+                <source>../TanksState/</source>
               </sources>
             </configuration>
           </execution>

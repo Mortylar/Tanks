@@ -3,7 +3,7 @@ SOURCES=$(shell find . -name "*.java")
 CLASSES=$(shell find . -name "*.class")
 COVERAGE_FILES=$(shell find . -name "index.html")
 CLANG_CONFIG=../.clang-format
-TARGET=TanksClient
+TARGET=TanksClient-1.0
 ARGS=-p=1234
 
 build:

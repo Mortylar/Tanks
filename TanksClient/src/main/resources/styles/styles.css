@@ -13,6 +13,12 @@
     -fx-image: url("../textures/player.png");
 }
 
+.enemy-bullet-style {
+    -fx-image: url("../textures/enemyBullet.png");
+}
+.player-bullet-style {
+    -fx-image: url("../textures/playerBullet.png");
+}
 .xp-style {
 /*-fx-background-color: black;
  -fx-padding: 3px;*/

@@ -1,6 +1,11 @@
 package edu.school21.controllers;
 
+import edu.school21.client.Client;
 import edu.school21.observers.Observable;
+import edu.school21.state.StateManager;
+import edu.school21.state.bullet.Bullet;
+import edu.school21.state.player.Player;
+import edu.school21.state.position.Position;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -19,56 +24,32 @@ public class GameController {
 
     private Observable observer;
     private Scene scene;
+    private Client client;
 
     @FXML
-    public void initialize() {
-        /*  this.scene.setOnKeyTyped(new EventHandler<KeyEvent>() {
-              public void handle(KeyEvent ev) {
-                  if (ev.getCharacter().equals("a")) {
-                      movePlayer(-10);
-                  } else if (ev.getCharacter().equals("d")) {
-                      movePlayer(10);
-                  }
-              }
-          });*/
-    }
-
-    /*
-    connect.addEventHandler(
-        MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent ev) {
-                if (isPortValidate()) {
-                    observer.notifyView();
-                } else {
-                    Alert alert = new Alert(AlertType.WARNING);
-                    alert.setContentText("Invalid port Value");
-                    alert.showAndWait();
-                }
-            }
-        });
-
-    cancel.addEventHandler(MouseEvent.MOUSE_CLICKED,
-                           new EventHandler<MouseEvent>() {
-                               @Override
-                               public void handle(MouseEvent ev) {
-                                   reset();
-                               }
-                           });*/
+    public void initialize() {}
 
     public void setObserver(Observable observer) { this.observer = observer; }
+
+    public void setClient(Client client) { this.client = client; }
+
     public void setScene(Scene scene) {
         this.scene = scene;
         this.scene.setOnKeyTyped(new EventHandler<KeyEvent>() {
             public void handle(KeyEvent ev) {
-                if (ev.getCharacter().equals("a")) {
-                    movePlayer(-10);
-                } else if (ev.getCharacter().equals("d")) {
-                    movePlayer(10);
-                }
+                client.setAction(ev.getCharacter());
             }
         });
     }
 
-    public void movePlayer(int x) { player.setX(player.getX() + x); }
+    public void draw() {
+        StateManager state = this.client.getStateManager();
+        // System.out.printf("\n\nstate = %s\n\n", state);
+        Player playerState = state.getPlayer(this.client.getId());
+        this.player.setX(playerState.getPosition().x() -
+                         StateManager.START_X_POSITION);
+        Player enemyState = state.getEnemy(this.client.getId());
+        this.enemy.setX(enemyState.getPosition().x() -
+                        StateManager.START_X_POSITION);
+    }
 }

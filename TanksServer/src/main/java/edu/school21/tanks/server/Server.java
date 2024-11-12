@@ -1,6 +1,8 @@
 package edu.school21.tanks.server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import edu.school21.state.StateManager;
 import edu.school21.tanks.models.Statistic;
 import edu.school21.tanks.models.User;
 import edu.school21.tanks.services.StatisticsService;
@@ -14,6 +16,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +31,7 @@ public class Server {
     private ServerSocket server;
     private Client first;
     private Client second;
-    // private User first;
-    // private User second;
-    // private Socket firstClient;
-    // private Socket secondClient;
+    private StateManager gameManager;
 
     public Server(UsersService uService, StatisticsService sService) {
         this.usersService = uService;
@@ -52,6 +53,7 @@ public class Server {
             secondThread.start();
             firstThread.join();
             secondThread.join();
+            gameLoop();
 
         } catch (Exception e) {
             System.err.printf("\n%s\nExiting..", e.getMessage());
@@ -59,9 +61,29 @@ public class Server {
         }
     }
 
+    private void gameLoop() throws IOException {
+        this.first.createStreams();
+        this.second.createStreams();
+        this.gameManager =
+            new StateManager(this.first.getId(), this.second.getId());
+        SenderThread sender =
+            new SenderThread(this.first, this.second, this.gameManager);
+        ReaderThread firstReader =
+            new ReaderThread(this.first, this.gameManager);
+        ReaderThread secondReader =
+            new ReaderThread(this.second, this.gameManager);
+        sender.start();
+        firstReader.start();
+        secondReader.start();
+        // TODO
+    }
+
     private class Client {
-        User user;
-        Socket socket;
+
+        private User user;
+        private Socket socket;
+        private BufferedReader inStream;
+        private PrintWriter outStream;
 
         public Client() {}
 
@@ -74,6 +96,17 @@ public class Server {
         public Socket getSocket() { return this.socket; }
 
         public Long getId() { return this.user.getId(); }
+
+        public void createStreams() throws IOException {
+            this.inStream = new BufferedReader(
+                new InputStreamReader(this.socket.getInputStream()));
+            this.outStream = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(this.socket.getOutputStream())));
+        }
+
+        public BufferedReader getInputStream() { return this.inStream; }
+
+        public PrintWriter getOutputStream() { return this.outStream; }
     }
 
     private class AuthenticateThread extends Thread {
@@ -107,7 +140,6 @@ public class Server {
         }
 
         private User authenticate(Socket client) throws Exception {
-            // System.out.printf("\nAAAAAAuth\n");
             Optional<User> user = Optional.empty();
             BufferedReader inStream = new BufferedReader(
                 new InputStreamReader(client.getInputStream()));
@@ -116,29 +148,92 @@ public class Server {
                                     client.getOutputStream())),
                                 true);
             String message = inStream.readLine();
-            System.out.printf("\nmessage = %s\n", message);
-            System.out.printf("\nmessage = %s\n", message.equals("SignUp"));
             if (null == message) {
-                System.out.printf("\nNNNNNNNN\n");
                 return null;
             }
             if (message.equals("SignUp")) {
-                System.err.printf("\nReg  %s\n", message);
                 user = usersService.signUp(inStream.readLine());
-                System.out.printf("\nReg\n");
             }
             if ("SignIn".equals(message)) {
-                System.out.printf("\nINNN\n");
                 user = usersService.signIn(inStream.readLine());
             }
             if (!user.isPresent()) {
-                System.out.printf("\nNULLLLLL\n");
                 outStream.println("0");
                 return null;
             }
-            System.out.printf("\nNOT NULL  %s\n", user.get().getId());
             outStream.println(user.get().getId());
             return user.get();
+        }
+    }
+
+    private class SenderThread extends Thread {
+
+        private Client first;
+        private Client second;
+        private StateManager manager;
+        private Gson gson;
+
+        public SenderThread(Client first, Client second, StateManager manager) {
+            this.first = first;
+            this.second = second;
+            this.manager = manager;
+            this.gson = new GsonBuilder().create();
+        }
+
+        @Override
+        public void run() {
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    sendState();
+                }
+            }, 0, 500);
+        }
+
+        private void sendState() {
+            String state = this.gson.toJson(this.manager);
+            this.first.getOutputStream().println(state);
+            this.second.getOutputStream().println(state);
+            this.first.getOutputStream().flush();
+            this.second.getOutputStream().flush();
+        }
+    }
+
+    private class ReaderThread extends Thread {
+
+        private static final int ACTION_MOVE_LEFT = -1;
+        private static final int ACTION_SHOT = 0;
+        private static final int ACTION_MOVE_RIGHT = 1;
+
+        private Client client;
+        private StateManager manager;
+        private Gson gson;
+
+        public ReaderThread(Client client, StateManager manager) {
+            this.client = client;
+            this.manager = manager;
+            this.gson = new GsonBuilder().create();
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    updateState(gson.fromJson(
+                        client.getInputStream().readLine(), int.class));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+
+        private void updateState(int action) {
+            if ((ACTION_MOVE_LEFT == action) || (ACTION_MOVE_RIGHT == action)) {
+                manager.move(client.getId(), action);
+            } else if (ACTION_SHOT == action) {
+                manager.fire(client.getId());
+            }
         }
     }
 }
