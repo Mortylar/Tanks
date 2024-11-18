@@ -58,7 +58,7 @@ public class StateManager {
         int newX = player.getPosition().x + dx;
         int rightBorder = FIELD_WIDTH - TANK_WIDTH + 2 * D_X;
         if ((newX < 0) || (newX > rightBorder)) {
-            System.out.printf("\n%d < %d\n", newX, rightBorder);
+            // System.out.printf("\n%d < %d\n", newX, rightBorder);
             return false;
         }
         /* if (player.getPosition().x < rightBorder) {
@@ -75,16 +75,21 @@ public class StateManager {
     public void moveBullets() {
         checkHits(first, second);
         checkHits(second, first);
+        // TODO player died exception
         this.first.moveBullets(FIELD_HEIGHT);
         this.second.moveBullets(FIELD_HEIGHT);
     }
 
     private void checkHits(Player victim, Player killer) {
         Bullet current = killer.getFirstBullet();
-        if ((current.getPosition().x > victim.getPosition().x) &&
-            (current.getPosition().x < victim.getPosition().x + TANK_WIDTH)) {
-            if (current.getPosition().y + current.D_Y >
-                FIELD_HEIGHT + TANK_HEIGHT) {
+        if (current == null) {
+            return;
+        }
+        if ((current.getPosition().x >
+             victim.getPosition().x - TANK_WIDTH / 2) &&
+            (current.getPosition().x <
+             victim.getPosition().x - 2 * D_X + TANK_WIDTH / 2)) {
+            if (current.getPosition().y > FIELD_HEIGHT - TANK_HEIGHT / 2) {
                 killer.removeFirstBullet();
                 victim.hit();
             }

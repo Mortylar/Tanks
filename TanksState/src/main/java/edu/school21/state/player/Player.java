@@ -36,10 +36,13 @@ public class Player {
 
     public int getXP() { return this.xp; }
 
+    public ArrayDeque<Bullet> getBullets() { return this.bullets; }
+
     public void move(int dx) { this.position = this.position.move(dx, 0); }
 
     public void fire() {
-        this.bullets.offer(new Bullet(new Position(this.position)).move());
+        this.bullets.offer(
+            new Bullet(new Position(this.position.x(), 150)).move());
     }
 
     public Bullet getFirstBullet() { return this.bullets.peek(); }
@@ -48,9 +51,15 @@ public class Player {
 
     public void moveBullets(int border) {
         Bullet current = getFirstBullet();
+        if (current == null) {
+            return;
+        }
         while (current.getPosition().y + current.D_Y > border) {
             removeFirstBullet();
             current = getFirstBullet();
+            if (current == null) {
+                return;
+            }
         }
         for (Bullet bullet : bullets) {
             bullet.move();

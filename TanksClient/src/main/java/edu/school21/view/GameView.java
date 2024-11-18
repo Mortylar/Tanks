@@ -6,6 +6,7 @@ import edu.school21.observers.Observable;
 import edu.school21.observers.ViewObserver;
 import java.io.IOException;
 import java.util.List;
+import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -53,15 +54,28 @@ public class GameView implements Viewable {
             getClass().getResource("/styles/styles.css").toExternalForm());
         stage.show();
         this.client.playGame();
+        // draw();
     }
 
     @Override
     public void catchEvent() {
+        // draw();
         try {
             controller.draw();
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+
+    public void draw() {
+        Task task = new Task<Void>() {
+            @Override
+            public Void call() throws Exception {
+                controller.draw();
+                return null;
+            }
+        };
+        new Thread(task).start();
     }
 
     /*

@@ -168,6 +168,8 @@ public class Server {
 
     private class SenderThread extends Thread {
 
+        private static final int delta = 10;
+
         private Client first;
         private Client second;
         private StateManager manager;
@@ -188,10 +190,12 @@ public class Server {
                 public void run() {
                     sendState();
                 }
-            }, 0, 500);
+            }, 0, this.delta);
         }
 
         private void sendState() {
+            manager.moveBullets();
+            // TODO player died exception
             String state = this.gson.toJson(this.manager);
             this.first.getOutputStream().println(state);
             this.second.getOutputStream().println(state);
@@ -234,6 +238,7 @@ public class Server {
             } else if (ACTION_SHOT == action) {
                 manager.fire(client.getId());
             }
+            // manager.moveBullets();
         }
     }
 }
