@@ -11,6 +11,8 @@ public class Player {
 
     private int xp = 100;
     private Long id;
+    private int shots = 0;
+    private int damageCount = 0;
     private Position position;
     private ArrayDeque<Bullet> bullets;
 
@@ -28,6 +30,10 @@ public class Player {
 
     public Long getId() { return this.id; }
 
+    public int getShots() { return this.shots; }
+
+    public int getDamageCount() { return this.damageCount; }
+
     public void setId(Long id) { this.id = id; }
 
     public void setPosition(Position position) { this.position = position; }
@@ -43,6 +49,7 @@ public class Player {
     public void fire() {
         this.bullets.offer(
             new Bullet(new Position(this.position.x(), 150)).move());
+        ++this.shots;
     }
 
     public Bullet getFirstBullet() { return this.bullets.peek(); }
@@ -66,7 +73,13 @@ public class Player {
         }
     }
 
-    public void hit() { xp -= DAMAGE_VALUE; }
+    public void hit() {
+        xp -= DAMAGE_VALUE;
+        ++this.damageCount;
+        if (xp < 0) {
+            xp = 0;
+        }
+    }
 
     @Override
     public String toString() {

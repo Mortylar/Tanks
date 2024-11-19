@@ -2,6 +2,7 @@ package edu.school21.view;
 
 import edu.school21.client.Client;
 import edu.school21.controllers.GameController;
+import edu.school21.exceptions.EndGameException;
 import edu.school21.observers.Observable;
 import edu.school21.observers.ViewObserver;
 import java.io.IOException;
@@ -52,58 +53,24 @@ public class GameView implements Viewable {
 
         scene.getStylesheets().add(
             getClass().getResource("/styles/styles.css").toExternalForm());
-        stage.show();
-        this.client.playGame();
-        // draw();
+        try {
+            stage.show();
+            this.client.playGame();
+        } catch (Exception e) {
+            System.out.printf("\nAAAA\n");
+        }
     }
 
     @Override
     public void catchEvent() {
-        // draw();
         try {
             controller.draw();
+        } catch (EndGameException e) {
+            this.client.endGame();
+            System.out.println(this.client.getStatisticInfo());
+            System.out.println("EndGame");
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
-
-    public void draw() {
-        Task task = new Task<Void>() {
-            @Override
-            public Void call() throws Exception {
-                controller.draw();
-                return null;
-            }
-        };
-        new Thread(task).start();
-    }
-
-    /*
-        @Override
-        public void start(Stage stage) throws IOException {
-            FXMLLoader fxmlLoader =
-                new FXMLLoader(getClass().getResource("/forms/game.fxml"));
-            Parent root = fxmlLoader.load();
-            Controller contr = fxmlLoader.getController();
-            Scene scene = new Scene(root, 1042, 1042);
-            scene.getStylesheets().add(
-                getClass().getResource("/styles/styles.css").toExternalForm());
-            stage.setTitle("Hello!");
-            stage.setScene(scene);
-            stage.show();
-
-            scene.setOnKeyTyped(new EventHandler<KeyEvent>() {
-                public void handle(KeyEvent ev) {
-                    if (ev.getCharacter().equals("d")) {
-                        contr.movePlayer(10);
-                        System.out.printf("\na\n");
-                    } else if (ev.getCharacter().equals("a")) {
-                        contr.movePlayer(-10);
-                        System.out.printf("\nd\n");
-                    }
-                }
-            });
-        }
-
-        public void run() { launch(); }*/
 }

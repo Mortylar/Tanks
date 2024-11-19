@@ -34,6 +34,7 @@ public class Client {
     private StateManager manager;
     private Gson gson;
     private Observable observer;
+    private boolean gameStatus = true;
 
     public Client(String ip) {
         this.ip = ip;
@@ -65,6 +66,14 @@ public class Client {
 
     public void sendSignal() { this.observer.notifyView(); }
 
+    public void endGame() { this.gameStatus = false; }
+
+    public String getStatisticInfo() {
+        return String.format("Shots = %d\nHits = %d\nMisses = %d\n",
+                             this.manager.getShots(this.id),
+                             this.manager.getHits(this.id),
+                             this.manager.getMisses(this.id));
+    }
     public boolean login(String name) {
         try {
             outStream.println(LOGIN_COMMAND);
@@ -148,6 +157,9 @@ public class Client {
                     Client.this.manager = gson.fromJson(Client.this.readState(),
                                                         StateManager.class);
                     Client.this.sendSignal();
+                    if (Client.this.gameStatus == false) {
+                        return;
+                    }
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e.getMessage());

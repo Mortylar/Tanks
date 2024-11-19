@@ -24,6 +24,10 @@ import org.springframework.stereotype.Component;
 @Component("Server")
 public class Server {
 
+    public static final int EXIT_NONE = 0;
+    public static final int EXIT_KILL = 1;
+    public static final int EXIT_ERROR = 2;
+
     @Autowired private UsersService usersService;
 
     @Autowired private StatisticsService statisticsService;
@@ -32,6 +36,7 @@ public class Server {
     private Client first;
     private Client second;
     private StateManager gameManager;
+    private int exitStatus = EXIT_NONE;
 
     public Server(UsersService uService, StatisticsService sService) {
         this.usersService = uService;
@@ -76,6 +81,12 @@ public class Server {
         firstReader.start();
         secondReader.start();
         // TODO
+    }
+
+    public void checkKilling() {
+        if (this.gameManager.isKilled()) {
+            exitStatus = EXIT_KILL;
+        }
     }
 
     private class Client {
@@ -168,7 +179,7 @@ public class Server {
 
     private class SenderThread extends Thread {
 
-        private static final int delta = 10;
+        private static final int delta = 100;
 
         private Client first;
         private Client second;
@@ -188,14 +199,18 @@ public class Server {
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    sendState();
+                    if (Server.this.exitStatus == Server.this.EXIT_NONE) {
+                        sendState();
+                    } else {
+                        return;
+                    }
                 }
             }, 0, this.delta);
         }
 
         private void sendState() {
             manager.moveBullets();
-            // TODO player died exception
+
             String state = this.gson.toJson(this.manager);
             this.first.getOutputStream().println(state);
             this.second.getOutputStream().println(state);
@@ -210,6 +225,7 @@ public class Server {
         private static final int ACTION_SHOT = 0;
         private static final int ACTION_MOVE_RIGHT = 1;
 
+        boolean isContiniousShot = false;
         private Client client;
         private StateManager manager;
         private Gson gson;
@@ -224,8 +240,10 @@ public class Server {
         public void run() {
             try {
                 while (true) {
-                    updateState(gson.fromJson(
-                        client.getInputStream().readLine(), int.class));
+                    if (Server.this.exitStatus == Server.this.EXIT_NONE) {
+                        updateState(gson.fromJson(
+                            client.getInputStream().readLine(), int.class));
+                    }
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e.getMessage());
@@ -233,12 +251,17 @@ public class Server {
         }
 
         private void updateState(int action) {
+            // static boolean isContinuousShot = false;
             if ((ACTION_MOVE_LEFT == action) || (ACTION_MOVE_RIGHT == action)) {
                 manager.move(client.getId(), action);
+                isContiniousShot = false;
             } else if (ACTION_SHOT == action) {
+                // if (isContiniousShot == false) {
                 manager.fire(client.getId());
+                // isConti
+                // }
+                isContiniousShot = true;
             }
-            // manager.moveBullets();
         }
     }
 }

@@ -53,6 +53,9 @@ public class StateManager {
         }
         return this.second;
     }
+    public int getShots(Long id) { return getPlayer(id).getShots(); }
+    public int getHits(Long id) { return getEnemy(id).getDamageCount(); }
+    public int getMisses(Long id) { return getShots(id) - getHits(id); }
 
     private boolean isAvailableMove(Player player, int dx) {
         int newX = player.getPosition().x + dx;
@@ -61,12 +64,7 @@ public class StateManager {
             // System.out.printf("\n%d < %d\n", newX, rightBorder);
             return false;
         }
-        /* if (player.getPosition().x < rightBorder) {
-             return true;
-         }
-         if (newX < rightBorder) {
-             return false;
-         }*/
+
         return true;
     }
 
@@ -94,6 +92,13 @@ public class StateManager {
                 victim.hit();
             }
         }
+    }
+
+    public boolean isKilled() {
+        if ((this.first.getXP() <= 0) || (this.second.getXP() <= 0)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
