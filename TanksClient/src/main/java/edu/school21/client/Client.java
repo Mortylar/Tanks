@@ -25,6 +25,7 @@ public class Client {
     private static final int LEFT_DIRECTION = -1;
     private static final int FIRE_ACTION = 0;
     private static final int RIGHT_DIRECTION = 1;
+    private static final int NO_ACTION = 2;
 
     private Socket socket;
     private String ip;
@@ -130,6 +131,8 @@ public class Client {
             sendAction(this.gson.toJson(RIGHT_DIRECTION));
         } else if (FIRE_KEY.equals(action)) {
             sendAction(this.gson.toJson(FIRE_ACTION));
+        } else {
+            sendAction(this.gson.toJson(NO_ACTION));
         }
     }
 

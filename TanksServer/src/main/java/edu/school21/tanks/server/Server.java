@@ -18,6 +18,7 @@ import java.net.Socket;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -224,6 +225,7 @@ public class Server {
         private static final int ACTION_MOVE_LEFT = -1;
         private static final int ACTION_SHOT = 0;
         private static final int ACTION_MOVE_RIGHT = 1;
+        private static final int SHOT_PAUSE = 1000;
 
         boolean isContiniousShot = false;
         private Client client;
@@ -239,10 +241,13 @@ public class Server {
         @Override
         public void run() {
             try {
+                Timer timer = new Timer(SHOT_PAUSE);
+                timer.start();
                 while (true) {
                     if (Server.this.exitStatus == Server.this.EXIT_NONE) {
-                        updateState(gson.fromJson(
-                            client.getInputStream().readLine(), int.class));
+                        int action = gson.fromJson(
+                            client.getInputStream().readLine(), int.class);
+                        updateState(action, timer);
                     }
                 }
             } catch (IOException e) {
@@ -250,17 +255,53 @@ public class Server {
             }
         }
 
-        private void updateState(int action) {
-            // static boolean isContinuousShot = false;
+        private void updateState(int action, Timer timer) {
             if ((ACTION_MOVE_LEFT == action) || (ACTION_MOVE_RIGHT == action)) {
                 manager.move(client.getId(), action);
-                isContiniousShot = false;
+                timer.setTime(SHOT_PAUSE);
             } else if (ACTION_SHOT == action) {
-                // if (isContiniousShot == false) {
-                manager.fire(client.getId());
-                // isConti
-                // }
-                isContiniousShot = true;
+                if (timer.getTime() > SHOT_PAUSE) {
+                    manager.fire(client.getId());
+                    timer.reset();
+                }
+            } else {
+                timer.setTime(SHOT_PAUSE);
+            }
+        }
+
+        private class Timer extends Thread {
+
+            private static final int SLEEP_TIME = 500;
+
+            private int time;
+            private boolean closeStatus = false;
+
+            public Timer(int start) { this.time = start; }
+
+            public int getTime() { return this.time; }
+
+            public void setTime(int time) { this.time = time; }
+
+            public void reset() { this.time = 0; }
+
+            public void close() { this.closeStatus = true; }
+
+            @Override
+            public void run() {
+                while (true) {
+                    ++this.time;
+                    if (this.time < 0) {
+                        this.time = 0;
+                    }
+                    try {
+                        TimeUnit.MICROSECONDS.sleep(SLEEP_TIME);
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+                    if (closeStatus) {
+                        return;
+                    }
+                }
             }
         }
     }

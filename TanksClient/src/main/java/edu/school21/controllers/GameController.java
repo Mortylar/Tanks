@@ -76,23 +76,22 @@ public class GameController {
         this.scene.setOnKeyTyped(new EventHandler<KeyEvent>() {
             public void handle(KeyEvent ev) {
                 String ch = ev.getCharacter();
-                if (ch.equals("a") || ch.equals("d")) {
-                    client.setAction(ev.getCharacter());
-                }
+                // if (ch.equals("a") || ch.equals("d")) {
+                client.setAction(ev.getCharacter());
+                // }
             }
         });
+        /*
+                this.scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+                    public void handle(KeyEvent ev) {
+                        String ch = ev.getCharacter();
 
-        this.scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            public void handle(KeyEvent ev) {
-                String ch = ev.getCharacter();
-
-                System.out.printf("\nAction = %%%d%%\n", (int)ch.charAt(0));
-                if (ch.equals(" ")) {
-                    System.out.printf("\nAction = %%%s%%\n", ch);
-                    client.setAction(ch);
-                }
-            }
-        });
+                        System.out.printf("\nAction = %%%d%%\n",
+           (int)ch.charAt(0)); if (ch.equals(" ")) { System.out.printf("\nAction
+           = %%%s%%\n", ch); client.setAction(ch);
+                        }
+                    }
+                });*/
     }
 
     public void draw() throws EndGameException {
