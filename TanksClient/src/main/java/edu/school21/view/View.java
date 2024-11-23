@@ -11,6 +11,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -44,7 +46,6 @@ public class View extends Application implements Viewable {
 
     @Override
     public void catchEvent() {
-        // System.out.printf("\nTODO\n");
         viewManager();
         System.out.printf("\nid = %d\n", client.getId());
     }
@@ -55,7 +56,8 @@ public class View extends Application implements Viewable {
         } else if (current == login) {
             current = game;
         } else if (current == game) {
-            System.exit(0);
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.showAndWait();
         }
         try {
             current.run();

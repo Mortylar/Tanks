@@ -30,6 +30,10 @@ public class GameController {
 
     private static final int BASE_ELEMENT_COUNT = 4;
     private static final int MAX_BULLETS_COUNT = 50;
+    private static final int BASE_BULLET_COORD = 1042;
+    private static final float XP_DIVIDER = 100F;
+    private static final int X_BULLET_OFFSET = 70;
+    private static final int Y_BULLET_OFFSET = 1024;
 
     @FXML private ImageView player;
     @FXML private ImageView enemy;
@@ -41,6 +45,8 @@ public class GameController {
     private Scene scene;
     private Image playerBulletImage;
     private Image enemyBulletImage;
+    private Image diedImage;
+    private Alert endInfo;
     private ArrayList<ImageView> playerBullets;
     private ArrayList<ImageView> enemyBullets;
     private Client client;
@@ -49,6 +55,8 @@ public class GameController {
     public void initialize() {
         playerBulletImage = new Image("/textures/playerBullet.png");
         enemyBulletImage = new Image("/textures/enemyBullet.png");
+        diedImage = new Image("/textures/fail.png");
+        this.endInfo = new Alert(AlertType.INFORMATION);
         playerBullets = new ArrayList<ImageView>(MAX_BULLETS_COUNT);
         enemyBullets = new ArrayList<ImageView>(MAX_BULLETS_COUNT);
         for (int i = 0; i < MAX_BULLETS_COUNT; ++i) {
@@ -76,22 +84,19 @@ public class GameController {
         this.scene.setOnKeyTyped(new EventHandler<KeyEvent>() {
             public void handle(KeyEvent ev) {
                 String ch = ev.getCharacter();
-                // if (ch.equals("a") || ch.equals("d")) {
-                client.setAction(ev.getCharacter());
-                // }
+                if (ch.equals("a") || ch.equals("d")) {
+                    client.setAction(ev.getCharacter());
+                }
             }
         });
-        /*
-                this.scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-                    public void handle(KeyEvent ev) {
-                        String ch = ev.getCharacter();
 
-                        System.out.printf("\nAction = %%%d%%\n",
-           (int)ch.charAt(0)); if (ch.equals(" ")) { System.out.printf("\nAction
-           = %%%s%%\n", ch); client.setAction(ch);
-                        }
-                    }
-                });*/
+        this.scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            public void handle(KeyEvent ev) {
+                if (ev.getCode().getName().equals("Space")) {
+                    client.setAction(" ");
+                }
+            }
+        });
     }
 
     public void draw() throws EndGameException {
@@ -111,34 +116,37 @@ public class GameController {
 
     private void drawPlayerBullets(ArrayDeque<Bullet> bullets) {
         for (int i = 0; i < MAX_BULLETS_COUNT; ++i) {
-            for (Bullet x : bullets) {
-                playerBullets.get(i).setX(70 + x.getPosition().x());
-                playerBullets.get(i).setY(1024 - x.getPosition().y());
+            for (Bullet cur : bullets) {
+                playerBullets.get(i).setX(X_BULLET_OFFSET +
+                                          cur.getPosition().x());
+                playerBullets.get(i).setY(Y_BULLET_OFFSET -
+                                          cur.getPosition().y());
                 ++i;
                 if (i >= MAX_BULLETS_COUNT) {
                     break;
                 }
             }
             if (i < MAX_BULLETS_COUNT) {
-                playerBullets.get(i).setX(1000);
-                playerBullets.get(i).setY(1000);
+                playerBullets.get(i).setX(BASE_BULLET_COORD);
+                playerBullets.get(i).setY(BASE_BULLET_COORD);
             }
         }
     }
 
     private void drawEnemyBullets(ArrayDeque<Bullet> bullets) {
         for (int i = 0; i < MAX_BULLETS_COUNT; ++i) {
-            for (Bullet x : bullets) {
-                enemyBullets.get(i).setX(70 + x.getPosition().x());
-                enemyBullets.get(i).setY(x.getPosition().y());
+            for (Bullet cur : bullets) {
+                enemyBullets.get(i).setX(X_BULLET_OFFSET +
+                                         cur.getPosition().x());
+                enemyBullets.get(i).setY(cur.getPosition().y());
                 ++i;
                 if (i >= MAX_BULLETS_COUNT) {
                     break;
                 }
             }
             if (i < MAX_BULLETS_COUNT) {
-                enemyBullets.get(i).setX(1000);
-                enemyBullets.get(i).setY(1000);
+                enemyBullets.get(i).setX(BASE_BULLET_COORD);
+                enemyBullets.get(i).setY(BASE_BULLET_COORD);
             }
         }
     }
@@ -147,15 +155,37 @@ public class GameController {
         StateManager state = this.client.getStateManager();
         int xp = state.getPlayer(this.client.getId()).getXP();
         checkXP(xp);
-        this.playerXP.setProgress(xp / 100.0F);
+        this.playerXP.setProgress(xp / XP_DIVIDER);
         xp = state.getEnemy(this.client.getId()).getXP();
         checkXP(xp);
-        this.enemyXP.setProgress(xp / 100.0F);
+        this.enemyXP.setProgress(xp / XP_DIVIDER);
     }
 
     private void checkXP(int xp) throws EndGameException {
         if (xp <= 0) {
             throw new EndGameException();
         }
+    }
+
+    public void drawDiedPlayer() {
+        StateManager state = this.client.getStateManager();
+        int xp = state.getPlayer(this.client.getId()).getXP();
+        if (xp <= 0) {
+            this.player.setImage(this.diedImage);
+        }
+        xp = state.getEnemy(this.client.getId()).getXP();
+        if (xp <= 0) {
+            this.enemy.setImage(this.diedImage);
+        }
+        for (int i = 0; i < MAX_BULLETS_COUNT; ++i) {
+            this.enemyBullets.get(i).setX(BASE_BULLET_COORD);
+            this.playerBullets.get(i).setX(BASE_BULLET_COORD);
+        }
+    }
+
+    public void viewInfo(String info) {
+        // Alert alert = new Alert(AlertType.INFORMATION);
+        this.endInfo.setContentText(info);
+        this.endInfo.showAndWait();
     }
 }

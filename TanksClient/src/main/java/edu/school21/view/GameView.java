@@ -6,6 +6,7 @@ import edu.school21.exceptions.EndGameException;
 import edu.school21.observers.Observable;
 import edu.school21.observers.ViewObserver;
 import java.io.IOException;
+import java.lang.Thread;
 import java.util.List;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
@@ -28,9 +29,11 @@ public class GameView implements Viewable {
     private GameController controller;
     private Observable observer;
     private Client client;
+    private Thread mainThread;
 
     public GameView(Stage stage, Observable observer, Client client)
         throws IOException {
+        this.mainThread = Thread.currentThread();
         this.observer = observer;
         this.client = client;
         this.stage = stage;
@@ -56,9 +59,12 @@ public class GameView implements Viewable {
         try {
             stage.show();
             this.client.playGame();
+            System.out.printf("\nMain??\n");
         } catch (Exception e) {
-            System.out.printf("\nAAAA\n");
+            System.out.println(e.getMessage());
         }
+
+        // this.controller.viewInfo(this.client.getStatisticInfo());
     }
 
     @Override
@@ -67,8 +73,18 @@ public class GameView implements Viewable {
             controller.draw();
         } catch (EndGameException e) {
             this.client.endGame();
-            System.out.println(this.client.getStatisticInfo());
-            System.out.println("EndGame");
+            // System.out.println(this.client.getStatisticInfo());
+            // System.out.println("EndGame");
+            this.controller.drawDiedPlayer();
+            try {
+                System.out.printf("\nBefore %s\n", mainThread.getName());
+                Thread.currentThread().yield();
+                this.controller.viewInfo(this.client.getStatisticInfo());
+
+                System.out.printf("\nAfter\n");
+            } catch (Exception notE) {
+                System.err.println(notE.getMessage());
+            }
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }

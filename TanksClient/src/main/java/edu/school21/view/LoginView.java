@@ -51,11 +51,7 @@ public class LoginView implements Viewable {
 
     @Override
     public void catchEvent() {
-        System.out.printf("\n****\n%s\n****\n", this.controller.getName());
-        // client.
-        // client.setId(22L);
         this.stage.hide();
         observer.notifyView();
-        // TODO
     }
 }

@@ -67,7 +67,14 @@ public class Client {
 
     public void sendSignal() { this.observer.notifyView(); }
 
-    public void endGame() { this.gameStatus = false; }
+    public void endGame() {
+        this.gameStatus = false;
+        try {
+            this.close();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
 
     public String getStatisticInfo() {
         return String.format("Shots = %d\nHits = %d\nMisses = %d\n",
@@ -125,12 +132,14 @@ public class Client {
     public String readState() throws IOException { return inStream.readLine(); }
 
     public void setAction(String action) {
-        if (LEFT_KEY.equals(action)) {
-            sendAction(this.gson.toJson(LEFT_DIRECTION));
-        } else if (RIGHT_KEY.equals(action)) {
-            sendAction(this.gson.toJson(RIGHT_DIRECTION));
-        } else if (FIRE_KEY.equals(action)) {
-            sendAction(this.gson.toJson(FIRE_ACTION));
+        if (this.gameStatus) {
+            if (LEFT_KEY.equals(action)) {
+                sendAction(this.gson.toJson(LEFT_DIRECTION));
+            } else if (RIGHT_KEY.equals(action)) {
+                sendAction(this.gson.toJson(RIGHT_DIRECTION));
+            } else if (FIRE_KEY.equals(action)) {
+                sendAction(this.gson.toJson(FIRE_ACTION));
+            }
         } else {
             sendAction(this.gson.toJson(NO_ACTION));
         }
@@ -139,6 +148,7 @@ public class Client {
     public void playGame() {
         this.manager = new StateManager();
         new Listener(this.manager).start();
+        System.out.printf("\nPlay Game End\n");
     }
 
     public StateManager getStateManager() { return this.manager; }
@@ -156,13 +166,13 @@ public class Client {
         @Override
         public void run() {
             try {
-                while (true) {
+                while (Client.this.gameStatus) {
                     Client.this.manager = gson.fromJson(Client.this.readState(),
                                                         StateManager.class);
                     Client.this.sendSignal();
-                    if (Client.this.gameStatus == false) {
-                        return;
-                    }
+                    System.out.printf("\nEXIT == true = %b\n",
+                                      Client.this.gameStatus);
+                    // return;
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e.getMessage());

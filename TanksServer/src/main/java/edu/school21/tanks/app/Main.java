@@ -40,5 +40,6 @@ public class Main {
             new AnnotationConfigApplicationContext(ApplicationConfig.class);
         Server server = (Server)context.getBean("Server");
         server.run(port);
+        context.close();
     }
 }

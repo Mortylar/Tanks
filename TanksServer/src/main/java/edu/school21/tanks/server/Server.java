@@ -28,6 +28,7 @@ public class Server {
     public static final int EXIT_NONE = 0;
     public static final int EXIT_KILL = 1;
     public static final int EXIT_ERROR = 2;
+    public static final int EXIT_FROM_CLIENT = 3;
 
     @Autowired private UsersService usersService;
 
@@ -67,6 +68,20 @@ public class Server {
         }
     }
 
+    public boolean isAlreadyLogin(String name) {
+        if (this.first.getUser() != null) {
+            if (this.first.getUser().getName().equals(name)) {
+                return true;
+            }
+        }
+        if (this.second.getUser() != null) {
+            if (this.second.getUser().getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void gameLoop() throws IOException {
         this.first.createStreams();
         this.second.createStreams();
@@ -81,7 +96,7 @@ public class Server {
         sender.start();
         firstReader.start();
         secondReader.start();
-        // TODO
+        return;
     }
 
     public void checkKilling() {
@@ -163,18 +178,35 @@ public class Server {
             if (null == message) {
                 return null;
             }
-            if (message.equals("SignUp")) {
-                user = usersService.signUp(inStream.readLine());
-            }
-            if ("SignIn".equals(message)) {
-                user = usersService.signIn(inStream.readLine());
-            }
-            if (!user.isPresent()) {
+            try {
+                if (message.equals("SignUp")) {
+                    String name = inStream.readLine();
+                    checkName(name);
+                    user = usersService.signUp(name);
+                }
+                if ("SignIn".equals(message)) {
+                    String name = inStream.readLine();
+                    checkName(name);
+                    user = usersService.signIn(name);
+                }
+                if (!user.isPresent()) {
+                    outStream.println("0");
+                    return null;
+                }
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
                 outStream.println("0");
                 return null;
             }
             outStream.println(user.get().getId());
             return user.get();
+        }
+
+        private void checkName(String name) throws Exception {
+            if (Server.this.isAlreadyLogin(name)) {
+                throw new Exception(
+                    String.format("Client %s is already login.", name));
+            }
         }
     }
 
@@ -203,6 +235,12 @@ public class Server {
                     if (Server.this.exitStatus == Server.this.EXIT_NONE) {
                         sendState();
                     } else {
+                        try {
+                            TimeUnit.SECONDS.sleep(5);
+                        } catch (Exception e) {
+                            System.err.println(e.getMessage());
+                        }
+                        sendState();
                         return;
                     }
                 }
@@ -225,9 +263,8 @@ public class Server {
         private static final int ACTION_MOVE_LEFT = -1;
         private static final int ACTION_SHOT = 0;
         private static final int ACTION_MOVE_RIGHT = 1;
-        private static final int SHOT_PAUSE = 1000;
+        private static final int ACTION_END = 2;
 
-        boolean isContiniousShot = false;
         private Client client;
         private StateManager manager;
         private Gson gson;
@@ -241,67 +278,30 @@ public class Server {
         @Override
         public void run() {
             try {
-                Timer timer = new Timer(SHOT_PAUSE);
-                timer.start();
-                while (true) {
-                    if (Server.this.exitStatus == Server.this.EXIT_NONE) {
-                        int action = gson.fromJson(
-                            client.getInputStream().readLine(), int.class);
-                        updateState(action, timer);
+                while (Server.this.exitStatus == Server.this.EXIT_NONE) {
+                    String answer = client.getInputStream().readLine();
+                    if (answer == null) {
+                        Server.this.exitStatus = Server.this.EXIT_ERROR;
+                        break;
                     }
+                    int action = gson.fromJson(answer, int.class);
+                    if (action == ACTION_END) {
+                        Server.this.exitStatus = Server.this.EXIT_FROM_CLIENT;
+                        break;
+                    }
+                    updateState(action);
                 }
             } catch (IOException e) {
-                throw new RuntimeException(e.getMessage());
+                Server.this.exitStatus = Server.this.EXIT_ERROR;
+                return;
             }
         }
 
-        private void updateState(int action, Timer timer) {
+        private void updateState(int action) {
             if ((ACTION_MOVE_LEFT == action) || (ACTION_MOVE_RIGHT == action)) {
                 manager.move(client.getId(), action);
-                timer.setTime(SHOT_PAUSE);
             } else if (ACTION_SHOT == action) {
-                if (timer.getTime() > SHOT_PAUSE) {
-                    manager.fire(client.getId());
-                    timer.reset();
-                }
-            } else {
-                timer.setTime(SHOT_PAUSE);
-            }
-        }
-
-        private class Timer extends Thread {
-
-            private static final int SLEEP_TIME = 500;
-
-            private int time;
-            private boolean closeStatus = false;
-
-            public Timer(int start) { this.time = start; }
-
-            public int getTime() { return this.time; }
-
-            public void setTime(int time) { this.time = time; }
-
-            public void reset() { this.time = 0; }
-
-            public void close() { this.closeStatus = true; }
-
-            @Override
-            public void run() {
-                while (true) {
-                    ++this.time;
-                    if (this.time < 0) {
-                        this.time = 0;
-                    }
-                    try {
-                        TimeUnit.MICROSECONDS.sleep(SLEEP_TIME);
-                    } catch (Exception e) {
-                        System.err.println(e.getMessage());
-                    }
-                    if (closeStatus) {
-                        return;
-                    }
-                }
+                manager.fire(client.getId());
             }
         }
     }
