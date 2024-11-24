@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import edu.school21.state.StateManager;
 import edu.school21.tanks.models.Statistic;
 import edu.school21.tanks.models.User;
+import edu.school21.tanks.pair.Pair;
 import edu.school21.tanks.services.StatisticsService;
 import edu.school21.tanks.services.UsersService;
 import java.io.BufferedReader;
@@ -15,6 +16,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,32 +37,38 @@ public class Server {
     @Autowired private StatisticsService statisticsService;
 
     private ServerSocket server;
-    private Client first;
-    private Client second;
+    private ArrayList<Pair<Client>> clientList;
+    private ArrayList<BabyServer> babyServerList;
     private StateManager gameManager;
     private int exitStatus = EXIT_NONE;
+    private boolean isCompletedPair;
 
     public Server(UsersService uService, StatisticsService sService) {
         this.usersService = uService;
         this.statisticsService = sService;
-        this.first = new Client();
-        this.second = new Client();
+        this.clientList = new ArrayList<Pair<Client>>();
+        this.babyServerList = new ArrayList<BabyServer>();
     }
 
     public void run(int port) {
         try (ServerSocket socket = new ServerSocket(port)) {
-            server = socket;
+            this.server = socket;
             System.out.printf("\nServer running in %d port\n", port);
 
-            AuthenticateThread firstThread =
-                new AuthenticateThread(server, first);
-            AuthenticateThread secondThread =
-                new AuthenticateThread(server, second);
-            firstThread.start();
-            secondThread.start();
-            firstThread.join();
-            secondThread.join();
-            gameLoop();
+            this.isCompletedPair = true;
+            int num = 0;
+            for (int i = 0; (i < 100) && (!this.server.isClosed()); ++i) {
+                if (this.isCompletedPair) {
+                    this.babyServerList.add(new BabyServer(socket));
+                    this.isCompletedPair = false;
+                    babyServerList.get(i).start();
+                    babyServerList.get(i).join();
+                    System.out.printf("\nGo \n");
+                } else {
+                    while (!this.isCompletedPair) {
+                    }
+                }
+            }
 
         } catch (Exception e) {
             System.err.printf("\n%s\nExiting..", e.getMessage());
@@ -69,39 +77,100 @@ public class Server {
     }
 
     public boolean isAlreadyLogin(String name) {
-        if (this.first.getUser() != null) {
-            if (this.first.getUser().getName().equals(name)) {
-                return true;
+        for (Pair<Client> pair : this.clientList) {
+            if (pair.getFirst().getUser() != null) {
+
+                System.out.printf("Name = %s",
+                                  pair.getFirst().getUser().getName());
+                if (pair.getFirst().getUser().getName().equals(name)) {
+                    return true;
+                }
             }
-        }
-        if (this.second.getUser() != null) {
-            if (this.second.getUser().getName().equals(name)) {
-                return true;
+            if (pair.getSecond().getUser() != null) {
+
+                System.out.printf("Name = %s",
+                                  pair.getSecond().getUser().getName());
+                if (pair.getSecond().getUser().getName().equals(name)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    private void gameLoop() throws IOException {
-        this.first.createStreams();
-        this.second.createStreams();
-        this.gameManager =
-            new StateManager(this.first.getId(), this.second.getId());
-        SenderThread sender =
-            new SenderThread(this.first, this.second, this.gameManager);
-        ReaderThread firstReader =
-            new ReaderThread(this.first, this.gameManager);
-        ReaderThread secondReader =
-            new ReaderThread(this.second, this.gameManager);
+    private boolean gameLoop(Client first, Client second) throws Exception {
+        first.createStreams();
+        second.createStreams();
+        this.gameManager = new StateManager(first.getId(), second.getId());
+        SenderThread sender = new SenderThread(first, second, this.gameManager);
+        ReaderThread firstReader = new ReaderThread(first, this.gameManager);
+        ReaderThread secondReader = new ReaderThread(second, this.gameManager);
         sender.start();
         firstReader.start();
         secondReader.start();
-        return;
+        /*
+        sender.join();
+        firstReader.join();
+        secondReader.join();
+        return true;
+        */
+        return true;
     }
 
     public void checkKilling() {
         if (this.gameManager.isKilled()) {
             exitStatus = EXIT_KILL;
+        }
+    }
+
+    private class BabyServer extends Thread {
+
+        private ServerSocket server;
+        private int pairIndex = 0;
+        private boolean endStatus = false;
+        private Client first;
+        private Client second;
+
+        public BabyServer(ServerSocket server) throws Exception {
+            this.server = server;
+            this.first = new Client();
+            this.second = new Client();
+        }
+
+        @Override
+        public void run() {
+            pairIndex = Server.this.clientList.size();
+            // System.out.printf("\nind = %d\n", curPairInd);
+            Server.this.clientList.add(new Pair<Client>(first, second));
+            AuthenticateThread firstThread =
+                new AuthenticateThread(this.server, first);
+            AuthenticateThread secondThread =
+                new AuthenticateThread(this.server, second);
+            firstThread.start();
+            secondThread.start();
+            try {
+                firstThread.join();
+                secondThread.join();
+                this.endStatus = gameLoop(first, second);
+                this.wait();
+                Server.this.isCompletedPair = true;
+                while (!this.endStatus) {
+                    System.out.printf("\nNotEnd\n");
+                }
+                close();
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            } finally {
+                // System.out.printf("\nremove\n");
+                // Server.this.clientList.remove(curPairInd);
+            }
+        }
+
+        private void close() throws Exception {
+            System.out.printf("\nClose\n");
+            first.close();
+            second.close();
+            Server.this.clientList.remove(pairIndex);
         }
     }
 
@@ -134,6 +203,12 @@ public class Server {
         public BufferedReader getInputStream() { return this.inStream; }
 
         public PrintWriter getOutputStream() { return this.outStream; }
+
+        public void close() throws Exception {
+            inStream.close();
+            outStream.close();
+            socket.close();
+        }
     }
 
     private class AuthenticateThread extends Thread {
@@ -154,12 +229,13 @@ public class Server {
         private void catchUser() {
             while (null == client.getUser()) {
                 try {
-                    client.setSocket(server.accept());
+                    client.setSocket(this.server.accept());
                     System.out.println("Accepted client");
                     while (null == client.getUser()) {
                         client.setUser(authenticate(client.getSocket()));
                     }
                 } catch (Exception e) {
+                    System.out.printf("\nZZZ\n");
                     System.err.println(e.getMessage());
                     client.setUser(null);
                 }
@@ -194,6 +270,7 @@ public class Server {
                     return null;
                 }
             } catch (Exception e) {
+                System.out.printf("\n218\n");
                 System.err.println(e.getMessage());
                 outStream.println("0");
                 return null;
@@ -291,6 +368,7 @@ public class Server {
                     }
                     updateState(action);
                 }
+                notifyAll();
             } catch (IOException e) {
                 Server.this.exitStatus = Server.this.EXIT_ERROR;
                 return;
