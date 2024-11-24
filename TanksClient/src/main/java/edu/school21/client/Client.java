@@ -30,6 +30,7 @@ public class Client {
     private Socket socket;
     private String ip;
     private Long id = INVALID_ID;
+    private String name;
     private BufferedReader inStream;
     private PrintWriter outStream;
     private StateManager manager;
@@ -76,6 +77,8 @@ public class Client {
         }
     }
 
+    public boolean isEndGame() { return !this.gameStatus; }
+
     public String getStatisticInfo() {
         return String.format("Shots = %d\nHits = %d\nMisses = %d\n",
                              this.manager.getShots(this.id),
@@ -88,13 +91,12 @@ public class Client {
             outStream.println(name);
             outStream.flush();
             this.id = Long.parseLong(inStream.readLine());
-            System.out.printf("\nClient %s id = %d\n", name, id);
             if (id == INVALID_ID) {
                 return false;
             }
+            this.name = name;
             return true;
         } catch (Exception e) {
-            System.out.printf("AAAAA");
             System.err.println(e.getMessage());
             return false;
         }
@@ -106,22 +108,23 @@ public class Client {
             outStream.println(name);
             outStream.flush();
             this.id = Long.parseLong(inStream.readLine());
-            System.out.printf("\nClient %s id = %d\n", name, id);
             if (id == INVALID_ID) {
                 return false;
             }
+            this.name = name;
             return true;
         } catch (Exception e) {
-            System.out.printf("AAAAA");
             System.err.println(e.getMessage());
             return false;
         }
     }
 
+    public String getName() { return this.name; }
+
     public void close() throws Exception {
         inStream.close();
         outStream.close();
-        socket.close(); // TODO check closing
+        socket.close();
     }
 
     public void sendAction(String action) {
@@ -148,7 +151,6 @@ public class Client {
     public void playGame() {
         this.manager = new StateManager();
         new Listener(this.manager).start();
-        System.out.printf("\nPlay Game End\n");
     }
 
     public StateManager getStateManager() { return this.manager; }
@@ -170,9 +172,6 @@ public class Client {
                     Client.this.manager = gson.fromJson(Client.this.readState(),
                                                         StateManager.class);
                     Client.this.sendSignal();
-                    System.out.printf("\nEXIT == true = %b\n",
-                                      Client.this.gameStatus);
-                    // return;
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e.getMessage());

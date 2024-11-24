@@ -20,6 +20,8 @@ import javafx.stage.Stage;
 public class ConnectView implements Viewable {
 
     private static final String CONNECT_FORM = "/forms/connect.fxml";
+    private static final int WINDOW_WIDTH = 300;
+    private static final int WINDOW_HEIGHT = 200;
 
     private Stage stage;
     private FXMLLoader fxmlLoader;
@@ -42,7 +44,7 @@ public class ConnectView implements Viewable {
     @Override
     public void run() {
         controller.setObserver(new ViewObserver(this));
-        Scene scene = new Scene(root, 300, 200);
+        Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setTitle("Connect");
         stage.setScene(scene);
         stage.show();
@@ -50,7 +52,6 @@ public class ConnectView implements Viewable {
 
     @Override
     public void catchEvent() {
-        System.out.printf("\n****\n%d\n****\n", this.controller.getPort());
         try {
             this.client.setPort(this.controller.getPort());
             this.stage.hide();

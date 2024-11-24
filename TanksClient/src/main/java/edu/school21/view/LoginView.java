@@ -20,6 +20,8 @@ import javafx.stage.Stage;
 public class LoginView implements Viewable {
 
     private static final String CONNECT_FORM = "/forms/login.fxml";
+    private static final int WINDOW_WIDTH = 300;
+    private static final int WINDOW_HEIGHT = 200;
 
     private Stage stage;
     private FXMLLoader fxmlLoader;
@@ -43,7 +45,7 @@ public class LoginView implements Viewable {
     public void run() {
         controller.setObserver(new ViewObserver(this));
         controller.setClient(client);
-        Scene scene = new Scene(root, 300, 200);
+        Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setTitle("Login");
         stage.setScene(scene);
         stage.show();

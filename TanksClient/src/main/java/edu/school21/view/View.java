@@ -36,7 +36,7 @@ public class View extends Application implements Viewable {
         login = new LoginView(new Stage(), new ViewObserver(this), this.client);
         game = new GameView(new Stage(), new ViewObserver(this), this.client);
         current = connect;
-        current.run(); //
+        current.run();
     }
 
     @Override
@@ -47,7 +47,6 @@ public class View extends Application implements Viewable {
     @Override
     public void catchEvent() {
         viewManager();
-        System.out.printf("\nid = %d\n", client.getId());
     }
 
     private void viewManager() {
@@ -55,9 +54,6 @@ public class View extends Application implements Viewable {
             current = login;
         } else if (current == login) {
             current = game;
-        } else if (current == game) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.showAndWait();
         }
         try {
             current.run();

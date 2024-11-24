@@ -22,6 +22,9 @@ import javafx.stage.Stage;
 public class GameView implements Viewable {
 
     private static final String CONNECT_FORM = "/forms/game.fxml";
+    private static final String STYLE_FILE = "/styles/styles.css";
+    private static final int WINDOW_WIDTH = 1024;
+    private static final int WINDOW_HEIGHT = 1024;
 
     private Stage stage;
     private FXMLLoader fxmlLoader;
@@ -47,7 +50,7 @@ public class GameView implements Viewable {
     public void run() {
         controller.setObserver(new ViewObserver(this));
         client.setObserver(new ViewObserver(this));
-        Scene scene = new Scene(root, 1024, 1024);
+        Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         stage.setTitle("Tanks");
         stage.setScene(scene);
         stage.setResizable(false);
@@ -55,16 +58,13 @@ public class GameView implements Viewable {
         controller.setClient(client);
 
         scene.getStylesheets().add(
-            getClass().getResource("/styles/styles.css").toExternalForm());
+            getClass().getResource(STYLE_FILE).toExternalForm());
         try {
             stage.show();
             this.client.playGame();
-            System.out.printf("\nMain??\n");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
-        // this.controller.viewInfo(this.client.getStatisticInfo());
     }
 
     @Override
@@ -73,18 +73,7 @@ public class GameView implements Viewable {
             controller.draw();
         } catch (EndGameException e) {
             this.client.endGame();
-            // System.out.println(this.client.getStatisticInfo());
-            // System.out.println("EndGame");
             this.controller.drawDiedPlayer();
-            try {
-                System.out.printf("\nBefore %s\n", mainThread.getName());
-                Thread.currentThread().yield();
-                this.controller.viewInfo(this.client.getStatisticInfo());
-
-                System.out.printf("\nAfter\n");
-            } catch (Exception notE) {
-                System.err.println(notE.getMessage());
-            }
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }

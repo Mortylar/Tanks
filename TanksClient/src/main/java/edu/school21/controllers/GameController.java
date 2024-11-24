@@ -18,6 +18,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -25,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
 public class GameController {
 
@@ -46,7 +48,6 @@ public class GameController {
     private Image playerBulletImage;
     private Image enemyBulletImage;
     private Image diedImage;
-    private Alert endInfo;
     private ArrayList<ImageView> playerBullets;
     private ArrayList<ImageView> enemyBullets;
     private Client client;
@@ -56,7 +57,6 @@ public class GameController {
         playerBulletImage = new Image("/textures/playerBullet.png");
         enemyBulletImage = new Image("/textures/enemyBullet.png");
         diedImage = new Image("/textures/fail.png");
-        this.endInfo = new Alert(AlertType.INFORMATION);
         playerBullets = new ArrayList<ImageView>(MAX_BULLETS_COUNT);
         enemyBullets = new ArrayList<ImageView>(MAX_BULLETS_COUNT);
         for (int i = 0; i < MAX_BULLETS_COUNT; ++i) {
@@ -70,8 +70,8 @@ public class GameController {
     private ImageView createBullet(Image image) {
         ImageView tmp = new ImageView();
         tmp.setImage(image);
-        tmp.setX(100);
-        tmp.setY(100);
+        tmp.setX(BASE_BULLET_COORD);
+        tmp.setY(BASE_BULLET_COORD);
         return tmp;
     }
 
@@ -86,6 +86,9 @@ public class GameController {
                 String ch = ev.getCharacter();
                 if (ch.equals("a") || ch.equals("d")) {
                     client.setAction(ev.getCharacter());
+                }
+                if (client.isEndGame()) {
+                    viewInfo(client.getStatisticInfo());
                 }
             }
         });
@@ -184,8 +187,24 @@ public class GameController {
     }
 
     public void viewInfo(String info) {
-        // Alert alert = new Alert(AlertType.INFORMATION);
-        this.endInfo.setContentText(info);
-        this.endInfo.showAndWait();
+        ButtonType exit = new ButtonType("EXIT");
+        Alert alert = new Alert(AlertType.INFORMATION, "Statistic", exit);
+        alert.setContentText(info);
+        alert.setTitle("Game Statistic");
+        alert.setHeaderText(getEndGameMessage());
+        alert.showAndWait()
+            .filter(responce -> responce == exit)
+            .ifPresent(responce -> ((Stage)this.scene.getWindow()).close());
+    }
+
+    private String getEndGameMessage() {
+        String message = String.format("Player %s, ", this.client.getName());
+        if (this.client.getStateManager()
+                .getPlayer(this.client.getId())
+                .getXP() <= 0) {
+            message += "Congratulation - you lose!!";
+            return message;
+        }
+        return message + "Sorry, but you win(";
     }
 }

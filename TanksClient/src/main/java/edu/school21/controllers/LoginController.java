@@ -25,9 +25,7 @@ public class LoginController {
             MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent ev) {
-                    System.out.printf("\nLogin name = %s\n", getName());
                     if (client.login(getName())) {
-                        System.out.printf("\nLogin\n");
                         observer.notifyView();
                     } else {
                         Alert alert = new Alert(AlertType.WARNING);
@@ -41,9 +39,7 @@ public class LoginController {
             MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent ev) {
-                    System.out.printf("\n%s registered\n", getName());
                     if (client.registration(getName())) {
-                        System.out.printf("\nReg\n");
                         observer.notifyView();
                     } else {
                         Alert alert = new Alert(AlertType.WARNING);
