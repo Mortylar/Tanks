@@ -56,4 +56,13 @@ public class StatisticsRepositoryImpl implements StatisticsRepository {
                              statistic.getMisses(),
                              statistic.getUser().getId());
     }
+
+    @Override
+    public void save(Statistic statistic) {
+        String query = "INSERT INTO t_statistic "
+                       + "VALUES(?, ?, ?, ?);";
+        this.template.update(query, statistic.getUser().getId(),
+                             statistic.getShots(), statistic.getHits(),
+                             statistic.getMisses());
+    }
 }

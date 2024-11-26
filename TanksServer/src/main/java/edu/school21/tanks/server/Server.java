@@ -31,6 +31,7 @@ public class Server {
     public static final int EXIT_KILL = 1;
     public static final int EXIT_ERROR = 2;
     public static final int EXIT_FROM_CLIENT = 3;
+    private static final int MAX_PAIR_COUNT = 100;
 
     @Autowired private UsersService usersService;
 
@@ -55,17 +56,14 @@ public class Server {
 
             this.isCompletedPair = true;
             int num = 0;
-            for (int i = 0; (i < 100) && (!this.server.isClosed()); ++i) {
+            for (int i = 0; (i < MAX_PAIR_COUNT) && (!this.server.isClosed());
+                 ++i) {
                 if (this.isCompletedPair) {
                     this.babyServerList.add(new BabyServer(socket, i));
                     this.isCompletedPair = false;
                     babyServerList.get(i).start();
-                    // babyServerList.get(i).join();
-                    System.out.printf("\nGo \n");
                 } else {
                     i -= 1;
-                    // while (!this.isCompletedPair) {
-                    // }
                 }
             }
 
@@ -91,16 +89,12 @@ public class Server {
         for (Pair<Client> pair : this.clientList) {
             if (pair.getFirst().getUser() != null) {
 
-                System.out.printf("Name = %s",
-                                  pair.getFirst().getUser().getName());
                 if (pair.getFirst().getUser().getName().equals(name)) {
                     return true;
                 }
             }
             if (pair.getSecond().getUser() != null) {
 
-                System.out.printf("Name = %s",
-                                  pair.getSecond().getUser().getName());
                 if (pair.getSecond().getUser().getName().equals(name)) {
                     return true;
                 }
@@ -108,28 +102,6 @@ public class Server {
         }
         return false;
     }
-    /*
-        private int gameLoop(int id,Client first, Client second) throws
-       Exception { first.createStreams(); second.createStreams(); StateManager
-       gameManager = new StateManager(first.getId(), second.getId());
-            SenderThread sender = new SenderThread(id, first, second,
-       gameManager); ReaderThread firstReader = new ReaderThread(id, first,
-       gameManager); ReaderThread secondReader = new ReaderThread(id, second,
-       gameManager); sender.start(); firstReader.start(); secondReader.start();
-
-            sender.join();
-            firstReader.join();
-            secondReader.join();
-            return true;
-
-            return this.EXIT_KILL;
-        }*/
-    /*
-        public void checkKilling() { //TODO add StateManager
-            if (this.gameManager.isKilled()) {
-                exitStatus = EXIT_KILL;
-            }
-        }*/
 
     private class BabyServer extends Thread {
 
@@ -165,17 +137,12 @@ public class Server {
                 firstThread.join();
                 secondThread.join();
                 Server.this.isCompletedPair = true;
-                /*this.exitStatus =*/gameLoop(this.id, first, second);
-                // Server.this.isCompletedPair = true;
+                gameLoop(this.id, first, second);
                 while (this.exitStatus == Server.this.EXIT_NONE) {
-                    System.out.printf("\nNotEnd\n");
                 }
                 close();
             } catch (Exception e) {
                 System.err.println(e.getMessage());
-            } finally {
-                // System.out.printf("\nremove\n");
-                // Server.this.clientList.remove(curPairInd);
             }
         }
 
@@ -185,6 +152,8 @@ public class Server {
             second.createStreams();
             StateManager gameManager =
                 new StateManager(first.getId(), second.getId());
+            setOldStatistic(gameManager, first.getId());
+            setOldStatistic(gameManager, second.getId());
             SenderThread sender =
                 new SenderThread(id, first, second, gameManager);
             ReaderThread firstReader = new ReaderThread(id, first, gameManager);
@@ -193,16 +162,20 @@ public class Server {
             sender.start();
             firstReader.start();
             secondReader.start();
-            /*
-                        sender.join();
-                        firstReader.join();
-                        secondReader.join();
-                        // return true;
-            */
             return Server.this.EXIT_KILL;
         }
+
+        private void setOldStatistic(StateManager manager, Long id) {
+            Optional<Statistic> stat =
+                Server.this.statisticsService.findByUserId(id);
+            if (stat.isPresent()) {
+                manager.setOldStatistic(id, stat.get().getShots(),
+                                        stat.get().getHits(),
+                                        stat.get().getMisses());
+            }
+        }
+
         private void close() throws Exception {
-            System.out.printf("\nClose\n");
             first.close();
             second.close();
             Server.this.clientList.remove(pairIndex);
@@ -270,7 +243,6 @@ public class Server {
                         client.setUser(authenticate(client.getSocket()));
                     }
                 } catch (Exception e) {
-                    System.out.printf("\nZZZ\n");
                     System.err.println(e.getMessage());
                     client.setUser(null);
                 }
@@ -305,7 +277,6 @@ public class Server {
                     return null;
                 }
             } catch (Exception e) {
-                System.out.printf("\n218\n");
                 System.err.println(e.getMessage());
                 outStream.println("0");
                 return null;
@@ -344,6 +315,7 @@ public class Server {
         @Override
         public void run() {
             Timer timer = new Timer();
+            final int SLEEP_TIME = 5;
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
@@ -352,15 +324,32 @@ public class Server {
                         sendState();
                     } else {
                         try {
-                            TimeUnit.SECONDS.sleep(5);
+                            sendState();
+                            saveStats(first.getUser());
+                            saveStats(second.getUser());
+                            timer.cancel();
                         } catch (Exception e) {
                             System.err.println(e.getMessage());
                         }
-                        sendState();
                         return;
                     }
                 }
             }, 0, this.delta);
+        }
+
+        private void saveStats(User user) {
+            int shots = this.manager.getShots(user.getId());
+            int hits = this.manager.getHits(user.getId());
+            int misses = this.manager.getMisses(user.getId());
+            Statistic local = new Statistic(user, shots, hits, misses);
+
+            Optional<Statistic> stat =
+                Server.this.statisticsService.findByUserId(user.getId());
+            if (!stat.isPresent()) {
+                Server.this.statisticsService.save(local);
+            } else {
+                Server.this.statisticsService.update(local.add(stat.get()));
+            }
         }
 
         private void sendState() {
@@ -411,8 +400,11 @@ public class Server {
                         break;
                     }
                     updateState(action);
+                    if (manager.isKilled()) {
+                        Server.this.setExitStatus(this.id,
+                                                  Server.this.EXIT_KILL);
+                    }
                 }
-                // notifyAll();
             } catch (IOException e) {
                 Server.this.setExitStatus(this.id, Server.this.EXIT_ERROR);
                 return;

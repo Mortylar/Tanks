@@ -26,7 +26,6 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public Optional<User> signUp(String name) {
         if (!repository.findByName(name).isPresent()) {
-            System.out.printf("\nreg = %s\n", name);
             repository.save(new User(DEFAULT_ID, name));
             return repository.findByName(name);
         }

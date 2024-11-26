@@ -25,4 +25,9 @@ public class StatisticsServiceImpl implements StatisticsService {
     public void update(Statistic statistic) {
         repository.update(statistic);
     }
+
+    @Override
+    public void save(Statistic statistic) {
+        repository.save(statistic);
+    }
 }

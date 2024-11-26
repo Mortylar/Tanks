@@ -53,15 +53,28 @@ public class StateManager {
         }
         return this.second;
     }
+
     public int getShots(Long id) { return getPlayer(id).getShots(); }
     public int getHits(Long id) { return getEnemy(id).getDamageCount(); }
     public int getMisses(Long id) { return getShots(id) - getHits(id); }
+
+    public int getTotalShots(Long id) { return getPlayer(id).getOldShots(); }
+    public int getTotalHits(Long id) { return getPlayer(id).getOldHits(); }
+    public int getTotalMisses(Long id) { return getPlayer(id).getOldMisses(); }
+
+    public void setOldStatistic(Long id, int shots, int hits, int misses) {
+        this.getPlayer(id).updateOldStat(shots, hits, misses);
+    }
+
+    public void updateStatistic(Long id) {
+        this.getPlayer(id).updateOldStat(getShots(id), getHits(id),
+                                         getMisses(id));
+    }
 
     private boolean isAvailableMove(Player player, int dx) {
         int newX = player.getPosition().x + dx;
         int rightBorder = FIELD_WIDTH - TANK_WIDTH + 2 * D_X;
         if ((newX < 0) || (newX > rightBorder)) {
-            // System.out.printf("\n%d < %d\n", newX, rightBorder);
             return false;
         }
 
@@ -73,7 +86,6 @@ public class StateManager {
     public void moveBullets() {
         checkHits(first, second);
         checkHits(second, first);
-        // TODO player died exception
         this.first.moveBullets(FIELD_HEIGHT);
         this.second.moveBullets(FIELD_HEIGHT);
     }

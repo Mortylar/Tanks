@@ -88,6 +88,7 @@ public class GameController {
                     client.setAction(ev.getCharacter());
                 }
                 if (client.isEndGame()) {
+                    client.updateStatistic();
                     viewInfo(client.getStatisticInfo());
                 }
             }

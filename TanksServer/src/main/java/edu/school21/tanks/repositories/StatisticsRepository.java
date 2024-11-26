@@ -9,4 +9,5 @@ public interface StatisticsRepository {
     public Optional<Statistic> findByUserId(Long id);
 
     public void update(Statistic statistic);
+    public void save(Statistic statistic);
 }

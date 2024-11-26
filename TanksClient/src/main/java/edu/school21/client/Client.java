@@ -79,11 +79,21 @@ public class Client {
 
     public boolean isEndGame() { return !this.gameStatus; }
 
+    public void updateStatistic() { this.manager.updateStatistic(this.id); }
+
     public String getStatisticInfo() {
-        return String.format("Shots = %d\nHits = %d\nMisses = %d\n",
-                             this.manager.getShots(this.id),
-                             this.manager.getHits(this.id),
-                             this.manager.getMisses(this.id));
+        String format = "Shots = %d\nHits = %d\nMisses = %d\n";
+        String total =
+            String.format(format, this.manager.getTotalShots(this.id),
+                          this.manager.getTotalHits(this.id),
+                          this.manager.getTotalMisses(this.id));
+        String current = String.format(format, this.manager.getShots(this.id),
+                                       this.manager.getHits(this.id),
+                                       this.manager.getMisses(this.id));
+
+        return String.format(
+            "Current game statistic:\n%s\nTotal statistic:\n%s\n", current,
+            total);
     }
     public boolean login(String name) {
         try {

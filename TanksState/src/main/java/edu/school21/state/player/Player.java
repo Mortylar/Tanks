@@ -13,9 +13,11 @@ public class Player {
     private Long id;
     private int shots = 0;
     private int damageCount = 0;
+    private Statistic old;
     private Position position;
     private ArrayDeque<Bullet> bullets;
 
+    { this.old = new Statistic(); }
     public Player() {
         this.id = DEFAULT_ID;
         this.position = new Position();
@@ -28,11 +30,21 @@ public class Player {
         this.bullets = new ArrayDeque<Bullet>();
     }
 
+    public void updateOldStat(int shots, int hits, int misses) {
+        this.old.add(new Statistic(shots, hits, misses));
+    }
+
     public Long getId() { return this.id; }
 
     public int getShots() { return this.shots; }
 
     public int getDamageCount() { return this.damageCount; }
+
+    public int getOldShots() { return this.old.shots; }
+
+    public int getOldHits() { return this.old.hits; }
+
+    public int getOldMisses() { return this.old.misses; }
 
     public void setId(Long id) { this.id = id; }
 
@@ -85,5 +97,28 @@ public class Player {
     public String toString() {
         return String.format("Player:\nid = %d\nxp = %d\n pos = %d", id, xp,
                              position.x());
+    }
+
+    private class Statistic {
+
+        public int shots = 0;
+        public int hits = 0;
+        public int misses = 0;
+
+        public Statistic(){};
+
+        public Statistic(int shots, int hits, int misses) {
+            this.shots = shots;
+            this.hits = hits;
+            this.misses = misses;
+        }
+
+        public void add(Statistic other) {
+            if (other != null) {
+                this.shots += other.shots;
+                this.hits += other.hits;
+                this.misses += other.misses;
+            }
+        }
     }
 }
