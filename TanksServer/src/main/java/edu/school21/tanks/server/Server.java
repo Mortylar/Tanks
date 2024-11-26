@@ -60,7 +60,7 @@ public class Server {
                     this.babyServerList.add(new BabyServer(socket, i));
                     this.isCompletedPair = false;
                     babyServerList.get(i).start();
-                    babyServerList.get(i).join();
+                    // babyServerList.get(i).join();
                     System.out.printf("\nGo \n");
                 } else {
                     i -= 1;
@@ -164,8 +164,9 @@ public class Server {
             try {
                 firstThread.join();
                 secondThread.join();
-                this.exitStatus = gameLoop(this.id, first, second);
                 Server.this.isCompletedPair = true;
+                /*this.exitStatus =*/gameLoop(this.id, first, second);
+                // Server.this.isCompletedPair = true;
                 while (this.exitStatus == Server.this.EXIT_NONE) {
                     System.out.printf("\nNotEnd\n");
                 }
@@ -192,12 +193,12 @@ public class Server {
             sender.start();
             firstReader.start();
             secondReader.start();
-
-            sender.join();
-            firstReader.join();
-            secondReader.join();
-            // return true;
-
+            /*
+                        sender.join();
+                        firstReader.join();
+                        secondReader.join();
+                        // return true;
+            */
             return Server.this.EXIT_KILL;
         }
         private void close() throws Exception {
