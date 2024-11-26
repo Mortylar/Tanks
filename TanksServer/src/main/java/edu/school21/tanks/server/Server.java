@@ -39,8 +39,6 @@ public class Server {
     private ServerSocket server;
     private ArrayList<Pair<Client>> clientList;
     private ArrayList<BabyServer> babyServerList;
-    private StateManager gameManager;
-    private int exitStatus = EXIT_NONE;
     private boolean isCompletedPair;
 
     public Server(UsersService uService, StatisticsService sService) {
@@ -59,14 +57,15 @@ public class Server {
             int num = 0;
             for (int i = 0; (i < 100) && (!this.server.isClosed()); ++i) {
                 if (this.isCompletedPair) {
-                    this.babyServerList.add(new BabyServer(socket));
+                    this.babyServerList.add(new BabyServer(socket, i));
                     this.isCompletedPair = false;
                     babyServerList.get(i).start();
                     babyServerList.get(i).join();
                     System.out.printf("\nGo \n");
                 } else {
-                    while (!this.isCompletedPair) {
-                    }
+                    i -= 1;
+                    // while (!this.isCompletedPair) {
+                    // }
                 }
             }
 
@@ -74,6 +73,18 @@ public class Server {
             System.err.printf("\n%s\nExiting..", e.getMessage());
             return;
         }
+    }
+
+    public BabyServer getBabyServer(int id) {
+        return this.babyServerList.get(id);
+    }
+
+    public int getExitStatus(int id) {
+        return this.getBabyServer(id).getExitStatus();
+    }
+
+    public void setExitStatus(int id, int status) {
+        this.getBabyServer(id).setExitStatus(status);
     }
 
     public boolean isAlreadyLogin(String name) {
@@ -97,50 +108,52 @@ public class Server {
         }
         return false;
     }
+    /*
+        private int gameLoop(int id,Client first, Client second) throws
+       Exception { first.createStreams(); second.createStreams(); StateManager
+       gameManager = new StateManager(first.getId(), second.getId());
+            SenderThread sender = new SenderThread(id, first, second,
+       gameManager); ReaderThread firstReader = new ReaderThread(id, first,
+       gameManager); ReaderThread secondReader = new ReaderThread(id, second,
+       gameManager); sender.start(); firstReader.start(); secondReader.start();
 
-    private boolean gameLoop(Client first, Client second) throws Exception {
-        first.createStreams();
-        second.createStreams();
-        this.gameManager = new StateManager(first.getId(), second.getId());
-        SenderThread sender = new SenderThread(first, second, this.gameManager);
-        ReaderThread firstReader = new ReaderThread(first, this.gameManager);
-        ReaderThread secondReader = new ReaderThread(second, this.gameManager);
-        sender.start();
-        firstReader.start();
-        secondReader.start();
-        /*
-        sender.join();
-        firstReader.join();
-        secondReader.join();
-        return true;
-        */
-        return true;
-    }
+            sender.join();
+            firstReader.join();
+            secondReader.join();
+            return true;
 
-    public void checkKilling() {
-        if (this.gameManager.isKilled()) {
-            exitStatus = EXIT_KILL;
-        }
-    }
+            return this.EXIT_KILL;
+        }*/
+    /*
+        public void checkKilling() { //TODO add StateManager
+            if (this.gameManager.isKilled()) {
+                exitStatus = EXIT_KILL;
+            }
+        }*/
 
     private class BabyServer extends Thread {
 
         private ServerSocket server;
+        private int id;
         private int pairIndex = 0;
-        private boolean endStatus = false;
+        private int exitStatus = Server.this.EXIT_NONE;
         private Client first;
         private Client second;
 
-        public BabyServer(ServerSocket server) throws Exception {
+        public BabyServer(ServerSocket server, int id) throws Exception {
             this.server = server;
+            this.id = id;
             this.first = new Client();
             this.second = new Client();
         }
 
+        public int getExitStatus() { return this.exitStatus; }
+
+        public void setExitStatus(int status) { this.exitStatus = status; }
+
         @Override
         public void run() {
             pairIndex = Server.this.clientList.size();
-            // System.out.printf("\nind = %d\n", curPairInd);
             Server.this.clientList.add(new Pair<Client>(first, second));
             AuthenticateThread firstThread =
                 new AuthenticateThread(this.server, first);
@@ -151,10 +164,9 @@ public class Server {
             try {
                 firstThread.join();
                 secondThread.join();
-                this.endStatus = gameLoop(first, second);
-                this.wait();
+                this.exitStatus = gameLoop(this.id, first, second);
                 Server.this.isCompletedPair = true;
-                while (!this.endStatus) {
+                while (this.exitStatus == Server.this.EXIT_NONE) {
                     System.out.printf("\nNotEnd\n");
                 }
                 close();
@@ -166,6 +178,28 @@ public class Server {
             }
         }
 
+        private int gameLoop(int id, Client first, Client second)
+            throws Exception {
+            first.createStreams();
+            second.createStreams();
+            StateManager gameManager =
+                new StateManager(first.getId(), second.getId());
+            SenderThread sender =
+                new SenderThread(id, first, second, gameManager);
+            ReaderThread firstReader = new ReaderThread(id, first, gameManager);
+            ReaderThread secondReader =
+                new ReaderThread(id, second, gameManager);
+            sender.start();
+            firstReader.start();
+            secondReader.start();
+
+            sender.join();
+            firstReader.join();
+            secondReader.join();
+            // return true;
+
+            return Server.this.EXIT_KILL;
+        }
         private void close() throws Exception {
             System.out.printf("\nClose\n");
             first.close();
@@ -295,8 +329,11 @@ public class Server {
         private Client second;
         private StateManager manager;
         private Gson gson;
+        private int id;
 
-        public SenderThread(Client first, Client second, StateManager manager) {
+        public SenderThread(int id, Client first, Client second,
+                            StateManager manager) {
+            this.id = id;
             this.first = first;
             this.second = second;
             this.manager = manager;
@@ -309,7 +346,8 @@ public class Server {
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    if (Server.this.exitStatus == Server.this.EXIT_NONE) {
+                    if (Server.this.getExitStatus(id) ==
+                        Server.this.EXIT_NONE) {
                         sendState();
                     } else {
                         try {
@@ -345,8 +383,10 @@ public class Server {
         private Client client;
         private StateManager manager;
         private Gson gson;
+        private int id;
 
-        public ReaderThread(Client client, StateManager manager) {
+        public ReaderThread(int id, Client client, StateManager manager) {
+            this.id = id;
             this.client = client;
             this.manager = manager;
             this.gson = new GsonBuilder().create();
@@ -355,22 +395,25 @@ public class Server {
         @Override
         public void run() {
             try {
-                while (Server.this.exitStatus == Server.this.EXIT_NONE) {
+                while (Server.this.getExitStatus(this.id) ==
+                       Server.this.EXIT_NONE) {
                     String answer = client.getInputStream().readLine();
                     if (answer == null) {
-                        Server.this.exitStatus = Server.this.EXIT_ERROR;
+                        Server.this.setExitStatus(this.id,
+                                                  Server.this.EXIT_ERROR);
                         break;
                     }
                     int action = gson.fromJson(answer, int.class);
                     if (action == ACTION_END) {
-                        Server.this.exitStatus = Server.this.EXIT_FROM_CLIENT;
+                        Server.this.setExitStatus(this.id,
+                                                  Server.this.EXIT_FROM_CLIENT);
                         break;
                     }
                     updateState(action);
                 }
-                notifyAll();
+                // notifyAll();
             } catch (IOException e) {
-                Server.this.exitStatus = Server.this.EXIT_ERROR;
+                Server.this.setExitStatus(this.id, Server.this.EXIT_ERROR);
                 return;
             }
         }
