@@ -53,11 +53,12 @@ public class ConnectView implements Viewable {
     @Override
     public void catchEvent() {
         try {
-            this.client.setPort(this.controller.getPort());
+            this.client.setIpAndPort(this.controller.getIpAddress(),
+                                     this.controller.getPort());
             this.stage.hide();
             observer.notifyView();
         } catch (Exception e) {
-            System.err.printf("\n%s\n", e.getMessage());
+            this.controller.showWarning(e.getMessage());
         }
     }
 }

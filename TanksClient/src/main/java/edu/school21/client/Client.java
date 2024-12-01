@@ -28,7 +28,6 @@ public class Client {
     private static final int NO_ACTION = 2;
 
     private Socket socket;
-    private String ip;
     private Long id = INVALID_ID;
     private String name;
     private BufferedReader inStream;
@@ -38,12 +37,9 @@ public class Client {
     private Observable observer;
     private boolean gameStatus = true;
 
-    public Client(String ip) {
-        this.ip = ip;
-        this.gson = new Gson();
-    }
+    public Client() { this.gson = new Gson(); }
 
-    public void setPort(int port) throws Exception {
+    public void setIpAndPort(String ip, int port) throws Exception {
         this.socket = new Socket(ip, port);
         this.inStream =
             new BufferedReader(new InputStreamReader(socket.getInputStream()));

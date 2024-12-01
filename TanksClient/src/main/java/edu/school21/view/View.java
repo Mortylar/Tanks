@@ -19,15 +19,13 @@ import javafx.stage.Stage;
 
 public class View extends Application implements Viewable {
 
-    private static final String SERVER_ADDRESS = "localhost";
-
     private Viewable current;
     private ConnectView connect;
     private LoginView login;
     private GameView game;
     private Client client;
 
-    { this.client = new Client(SERVER_ADDRESS); }
+    { this.client = new Client(); }
 
     @Override
     public void start(Stage stage) throws Exception {

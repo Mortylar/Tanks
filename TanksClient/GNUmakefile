@@ -10,7 +10,10 @@ build:
 	mvn clean package
  
 run: build
-	java -jar target/$(TARGET).jar $(ARGS)
+	java -jar target/$(TARGET).jar
+
+run_no_build:
+	java -jar target/$(TARGET).jar
 
 test:
 	mvn clean test

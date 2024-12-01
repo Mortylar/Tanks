@@ -138,9 +138,14 @@ public class Server {
                 secondThread.join();
                 Server.this.isCompletedPair = true;
                 gameLoop(this.id, first, second);
-                while (this.exitStatus == Server.this.EXIT_NONE) {
+                int i = 0;
+                while (true) {
+                    /* System.out.printf("\0");
+                     if (this.exitStatus != Server.this.EXIT_NONE) {
+                         close();
+                         return;
+                     }*/
                 }
-                close();
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
@@ -175,7 +180,7 @@ public class Server {
             }
         }
 
-        private void close() throws Exception {
+        public void close() throws Exception {
             first.close();
             second.close();
             Server.this.clientList.remove(pairIndex);
@@ -328,6 +333,8 @@ public class Server {
                             saveStats(first.getUser());
                             saveStats(second.getUser());
                             timer.cancel();
+                            // TODO
+                            Server.this.getBabyServer(id).close();
                         } catch (Exception e) {
                             System.err.println(e.getMessage());
                         }
