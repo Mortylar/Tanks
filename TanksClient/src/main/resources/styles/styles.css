@@ -20,32 +20,10 @@
     -fx-image: url("../textures/playerBullet.png");
 }
 .xp-style {
-/*-fx-background-color: black;
- -fx-padding: 3px;*/
- /*-fx-border-color: black;*/
- /*-fx-border-color: black;
- -fx-border-radius: 5;*/
  -fx-accent: red;
  -fx-text-box-border: black;
  -fx-control-inner-background: black;
  -fx-background-color: black;
  -fx-background-radius: 5;
 
- /*-fx-control-inner-border: red;*/
-/*
- -fx-background-color: black;
- -fx-background-insets: 3 3 4 3;
- -fx-background-radius: 2;
-     -fx-padding: 0.25em;
-*/
-/*-fx-border-image-source: url("../textures/life.png");*/
-/*-fx-text-box-border: black;
--fk-padding: 5;
--fx-border-image-width: 5;*/
-
-/*
-    -fx-border-image-source: url("../textures/life.png");*/
-    /*-fx-border-width: 15px;*/
-  /*  -fx-border-width: 5px;
-    -fx-progress-color: url("../textures/life.png");*/
 }

@@ -12,6 +12,7 @@ import javafx.scene.input.MouseEvent;
 public class ConnectController {
 
     private static final String LOCALHOST_ADDRESS = "localhost";
+    private static final String WIDE_ADDRESS = "0.0.0.0";
 
     @FXML private Button connect;
     @FXML private Button cancel;
@@ -82,6 +83,9 @@ public class ConnectController {
     public boolean isAddressValidate() {
         String addressStr = this.address.getText();
         if (null == addressStr) {
+            return false;
+        }
+        if (addressStr.equals(WIDE_ADDRESS)) {
             return false;
         }
         if (addressStr.equals(LOCALHOST_ADDRESS)) {

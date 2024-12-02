@@ -128,9 +128,9 @@ public class Server {
             pairIndex = Server.this.clientList.size();
             Server.this.clientList.add(new Pair<Client>(first, second));
             AuthenticateThread firstThread =
-                new AuthenticateThread(this.server, first);
+                new AuthenticateThread(this.id, this.server, first);
             AuthenticateThread secondThread =
-                new AuthenticateThread(this.server, second);
+                new AuthenticateThread(this.id, this.server, second);
             firstThread.start();
             secondThread.start();
             try {
@@ -138,14 +138,6 @@ public class Server {
                 secondThread.join();
                 Server.this.isCompletedPair = true;
                 gameLoop(this.id, first, second);
-                int i = 0;
-                while (true) {
-                    /* System.out.printf("\0");
-                     if (this.exitStatus != Server.this.EXIT_NONE) {
-                         close();
-                         return;
-                     }*/
-                }
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
@@ -228,8 +220,10 @@ public class Server {
 
         private ServerSocket server;
         private Client client;
+        private int id;
 
-        public AuthenticateThread(ServerSocket server, Client client) {
+        public AuthenticateThread(int id, ServerSocket server, Client client) {
+            this.id = id;
             this.server = server;
             this.client = client;
         }
@@ -240,7 +234,9 @@ public class Server {
         }
 
         private void catchUser() {
-            while (null == client.getUser()) {
+            while (
+                (null == client.getUser()) &&
+                (Server.this.getExitStatus(this.id) == Server.this.EXIT_NONE)) {
                 try {
                     client.setSocket(this.server.accept());
                     System.out.println("Accepted client");
@@ -333,7 +329,6 @@ public class Server {
                             saveStats(first.getUser());
                             saveStats(second.getUser());
                             timer.cancel();
-                            // TODO
                             Server.this.getBabyServer(id).close();
                         } catch (Exception e) {
                             System.err.println(e.getMessage());

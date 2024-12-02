@@ -63,7 +63,8 @@ public class GameView implements Viewable {
             stage.show();
             this.client.playGame();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
+            return;
         }
     }
 
@@ -76,6 +77,7 @@ public class GameView implements Viewable {
             this.controller.drawDiedPlayer();
         } catch (Exception e) {
             System.err.println(e.getMessage());
+            throw new RuntimeException("");
         }
     }
 }

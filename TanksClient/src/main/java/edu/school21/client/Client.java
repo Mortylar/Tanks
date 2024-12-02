@@ -9,11 +9,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class Client {
 
+    private static final int CONNECT_TIMEOUT_MS = 5000;
     private static final String LOGIN_COMMAND = "SignIn";
     private static final String REGISTRATION_COMMAND = "SignUp";
     private static final Long INVALID_ID = 0L;
@@ -40,7 +42,9 @@ public class Client {
     public Client() { this.gson = new Gson(); }
 
     public void setIpAndPort(String ip, int port) throws Exception {
-        this.socket = new Socket(ip, port);
+        this.socket = new Socket();
+        this.socket.connect(new InetSocketAddress(ip, port),
+                            CONNECT_TIMEOUT_MS);
         this.inStream =
             new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.outStream =
